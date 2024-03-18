@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\CreateUser;
 use App\Http\Requests\User\UpdateUser;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -20,7 +21,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::with(['department','regency'])->get();
+        $users = User::with(['department','regency'])->orderBy('id', 'DESC')->get();
         return $users;
     }
 
@@ -37,30 +38,39 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CreateUser $req)
+    public function store(Request $request)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $name = $request->input('name');
+            $email = $request->input('email');
+            $phone = $request->input('phone');
+            $password = $request->input('password');
+            $birthday = $request->input('birthday');
+            $image = $request->input('image');
+            $department_id = $request->input('department_id');
+            $regency_id = $request->input('regency_id');
             User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => bcrypt($data['password']),
-                'phone' => $data['phone'],
-                'birthday' => $data['birthday'],
-                'image' => $data['image'],
-                'department_id' => $data['department_id'],
-                'regency_id' => $data['regency_id'],
+                'name' => $name,
+                'email' => $email,
+                'password' => bcrypt($password),
+                'phone' => $phone,
+                'birthday' => Carbon::parse($birthday)->toDateString(),
+                'image' => $image,
+                'department_id' => $department_id['id'],
+                'regency_id' => $regency_id['id'],
                 'used_time' => now(),
                 'active' => 1
             ]);
 
             DB::commit();
-            Session::flash('success', 'Đã thêm mới user');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Đã thêm mới user',
+            ));
         } catch (\Exception $ex) {
             DB::rollBack();
             \Log::info([
@@ -68,8 +78,10 @@ class UserController extends Controller
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa thêm được user');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa thêm được user',
+            ));
         }
     }
 
@@ -102,36 +114,47 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateUser $req, $id)
+    public function update(Request $request, $id)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $name = $request->input('name');
+            $email = $request->input('email');
+            $phone = $request->input('phone');
+            $password = $request->input('password');
+            $birthday = $request->input('birthday');
+            $image = $request->input('image');
+            $department_id = $request->input('department_id');
+            $regency_id = $request->input('regency_id');
             $user = User::findOrFail($id);
             $user->update([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => bcrypt($data['password']),
-                'phone' => $data['phone'],
-                'birthday' => $data['birthday'],
-                'image' => $data['image'],
-                'department_id' => $data['department_id'],
-                'regency_id' => $data['regency_id'],
+                'name' => $name,
+                'email' => $email,
+                'password' => bcrypt($password),
+                'phone' => $phone,
+                'birthday' => Carbon::parse($birthday)->toDateString(),
+                'image' => $image,
+                'department_id' => $department_id['id'],
+                'regency_id' => $regency_id['id'],
                 'used_time' => now(),
                 'active' => 1
             ]);
 
             DB::commit();
-            Session::flash('success', 'Cập nhật thành công user');
-            return redirect()->route('admin.article.edit', $id);
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Cập nhật thành công user',
+            ));
         } catch (\Exception $exception) {
             \Log::info([
                 'message' => $exception->getMessage(),
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa cập nhật được user');
-            return back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa cập nhật được user',
+            ));
         }
     }
 

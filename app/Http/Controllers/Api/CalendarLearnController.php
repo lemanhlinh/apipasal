@@ -40,20 +40,23 @@ class CalendarLearnController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CreateCalendarLearn $req)
+    public function store(Request  $request)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
+            $days = $request->input('days');
             CalendarLearn::create([
-                'title' => $data['title'],
-                'days' => $data['days'],
+                'title' => $title,
+                'days' => json_encode($days),
                 'active' => 1,
             ]);
 
             DB::commit();
-            Session::flash('success', 'Đã thêm mới Lịch học');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Đã thêm mới Lịch học',
+            ));
         } catch (\Exception $ex) {
             DB::rollBack();
             \Log::info([
@@ -61,8 +64,10 @@ class CalendarLearnController extends Controller
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa thêm được Lịch học');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Chưa thêm được Lịch học',
+            ));
         }
     }
 
@@ -95,28 +100,33 @@ class CalendarLearnController extends Controller
      * @param  \App\Models\CalendarLearn  $calendarLearn
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateCalendarLearn $req, $id)
+    public function update(Request $request, $id)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
+            $days = $request->input('days');
             $cat = CalendarLearn::findOrFail($id);
             $cat->update([
-                'title' => $data['title'],
-                'days' => $data['days'],
+                'title' => $title,
+                'days' => json_encode($days),
                 'active' => 1,
             ]);
             DB::commit();
-            Session::flash('success', 'Cập nhật thành công');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Cập nhật thành công',
+            ));
         } catch (\Exception $exception) {
             \Log::info([
                 'message' => $exception->getMessage(),
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa cập nhật được');
-            return back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Chưa cập nhật được',
+            ));
         }
     }
 

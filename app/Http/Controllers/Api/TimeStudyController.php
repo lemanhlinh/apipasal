@@ -40,19 +40,21 @@ class TimeStudyController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CreateTimeStudy $req)
+    public function store(Request  $request)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
             TimeStudy::create([
-                'title' => $data['title'],
+                'title' => $title,
                 'active' => 1,
             ]);
 
             DB::commit();
-            Session::flash('success', 'Đã thêm mới Ca học');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Đã thêm mới Ca học',
+            ));
         } catch (\Exception $ex) {
             DB::rollBack();
             \Log::info([
@@ -60,8 +62,10 @@ class TimeStudyController extends Controller
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa thêm được Ca học');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa thêm được Ca học',
+            ));
         }
     }
 
@@ -94,27 +98,31 @@ class TimeStudyController extends Controller
      * @param  \App\Models\TimeStudy  $timeStudy
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateTimeStudy $req, $id)
+    public function update(Request  $request, $id)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
             $cat = TimeStudy::findOrFail($id);
             $cat->update([
-                'title' => $data['title'],
+                'title' => $title,
                 'active' => 1,
             ]);
             DB::commit();
-            Session::flash('success', 'Cập nhật thành công');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Cập nhật thành công',
+            ));
         } catch (\Exception $exception) {
             \Log::info([
                 'message' => $exception->getMessage(),
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa cập nhật được');
-            return back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa cập nhật được',
+            ));
         }
     }
 

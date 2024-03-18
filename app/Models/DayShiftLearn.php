@@ -9,5 +9,6 @@ class DayShiftLearn extends Model
 {
     use HasFactory;
 
+    protected $guarded = ['id'];
     protected $table = 'day_shift_learn';
 }

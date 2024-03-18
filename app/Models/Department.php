@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Department extends Model
 {
     use HasFactory;
+    protected $guarded = ['id'];
     protected $table = 'department';
 
     public function regencies()

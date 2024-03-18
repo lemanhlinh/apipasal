@@ -20,7 +20,7 @@ class RegenciesController extends Controller
      */
     public function index()
     {
-        $regencies = Regencies::with(['department'])->get();
+        $regencies = Regencies::with(['department'])->orderBy('id', 'DESC')->get();
         return $regencies;
     }
 
@@ -37,25 +37,30 @@ class RegenciesController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CreateRegencies $req)
+    public function store(Request $request)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
+            $code = $request->input('code');
+            $department_id = $request->input('department_id');
+            $permission = $request->input('permission');
             Regencies::create([
-                'title' => $data['title'],
-                'code' =>  $data['code'],
-                'department_id' => $data['department_id'],
-                'permission' => $data['permission'],
+                'title' => $title,
+                'code' =>  $code,
+                'department_id' => $department_id['id'],
+                'permission' => $permission,
                 'active' => 1
             ]);
 
             DB::commit();
-            Session::flash('success', 'Đã thêm mới chức vụ mới');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Đã thêm mới chức vụ mới',
+            ));
         } catch (\Exception $ex) {
             DB::rollBack();
             \Log::info([
@@ -63,15 +68,17 @@ class RegenciesController extends Controller
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa thêm được chức vụ');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa thêm được chức vụ',
+            ));
         }
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Regencies  $regencies
+     * @param  \App\Models\Regencies $regencies
      * @return \Illuminate\Http\Response
      */
     public function show(Regencies $regencies)
@@ -93,35 +100,42 @@ class RegenciesController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Regencies  $regencies
+     * @param  \Illuminate\Http\Request $request
+     * @param  \App\Models\Regencies $regencies
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateRegencies $req, $id)
+    public function update(Request $request, $id)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
-            $department = Regencies::findOrFail($id);
-            $department->update([
-                'title' => $data['title'],
-                'code' =>  $data['code'],
-                'department_id' => $data['department_id'],
-                'permission' => $data['permission'],
+            $title = $request->input('title');
+            $code = $request->input('code');
+            $department_id = $request->input('department_id');
+            $permission = $request->input('permission');
+            $regencies = Regencies::findOrFail($id);
+            $regencies->update([
+                'title' => $title,
+                'code' =>  $code,
+                'department_id' => $department_id,
+                'permission' => $permission,
                 'active' => 1
             ]);
 
             DB::commit();
-            Session::flash('success', 'Cập nhật thành công chức vụ');
-            return redirect()->route('admin.article.edit', $id);
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Cập nhật thành công chức vụ',
+            ));
         } catch (\Exception $exception) {
             \Log::info([
                 'message' => $exception->getMessage(),
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa cập nhật được chức vụ');
-            return back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa cập nhật được chức vụ',
+            ));
         }
     }
 

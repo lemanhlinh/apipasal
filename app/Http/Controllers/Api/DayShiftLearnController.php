@@ -40,19 +40,21 @@ class DayShiftLearnController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CreateDayShiftLearn $req)
+    public function store(Request  $request)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
             DayShiftLearn::create([
-                'title' => $data['title'],
+                'title' => $title,
                 'active' => 1,
             ]);
 
             DB::commit();
-            Session::flash('success', 'Đã thêm mới Thời gian học');
-            return redirect()->back();
+            return  response()->json(array(
+                'error' => false,
+                'result' => 'Thêm thời gian học thành công',
+            ));
         } catch (\Exception $ex) {
             DB::rollBack();
             \Log::info([
@@ -60,8 +62,10 @@ class DayShiftLearnController extends Controller
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa thêm được thời gian học');
-            return redirect()->back();
+            return  response()->json(array(
+                'error' => true,
+                'result' => 'Chưa thêm được thời gian học',
+            ));
         }
     }
 
@@ -94,27 +98,31 @@ class DayShiftLearnController extends Controller
      * @param  \App\Models\DayShiftLearn  $dayShiftLearn
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateDayShiftLearn $req, $id)
+    public function update(Request  $request, $id)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
             $cat = DayShiftLearn::findOrFail($id);
             $cat->update([
-                'title' => $data['title'],
+                'title' => $title,
                 'active' => 1,
             ]);
             DB::commit();
-            Session::flash('success', 'Cập nhật thành công');
-            return redirect()->back();
+            return  response()->json(array(
+                'error' => false,
+                'result' => 'Cập nhật thành công',
+            ));
         } catch (\Exception $exception) {
             \Log::info([
                 'message' => $exception->getMessage(),
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa cập nhật được');
-            return back();
+            return  response()->json(array(
+                'error' => true,
+                'result' => 'Chưa cập nhật được',
+            ));
         }
     }
 

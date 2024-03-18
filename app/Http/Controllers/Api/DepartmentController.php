@@ -19,7 +19,7 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $departments = Department::with(['user_manage','users','regencies'])->get();
+        $departments = Department::with(['user_manage','users','regencies'])->orderBy('id', 'DESC')->get();
         return $departments;
     }
 
@@ -39,23 +39,35 @@ class DepartmentController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CreateDepartment $req)
+    public function store(Request  $request)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
+            $code = $request->input('code');
+            $campuses = $request->input('campuses');
+            $ids_campuses = collect($campuses)->pluck('id')->toArray();
+            $type_office = $request->input('type_office');
+            $user_id = $request->input('user_id');
+            if ($type_office == 1){
+                $type_office = 0;
+            }else{
+                $type_office = 1;
+            }
             Department::create([
-                'title' => $data['title'],
-                'code' => $data['code'],
-                'type_office' => $data['type_office'],
-                'campuses' => $data['campuses'],
-                'user_id' => $data['user_id'],
+                'title' => $title,
+                'code' => $code,
+                'type_office' => $type_office,
+                'campuses' => $ids_campuses,
+                'user_id' => $user_id['id'],
                 'active' => 1
             ]);
 
             DB::commit();
-            Session::flash('success', 'Đã thêm mới phòng ban');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Đã thêm mới phòng ban',
+            ));
         } catch (\Exception $ex) {
             DB::rollBack();
             \Log::info([
@@ -63,8 +75,10 @@ class DepartmentController extends Controller
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa thêm được phòng ban');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa thêm được phòng ban',
+            ));
         }
     }
 
@@ -97,32 +111,46 @@ class DepartmentController extends Controller
      * @param  \App\Models\Department  $department
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateDepartment $req, $id)
+    public function update(Request  $request, $id)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
+            $code = $request->input('code');
+            $campuses = $request->input('campuses');
+            $ids_campuses = collect($campuses)->pluck('id')->toArray();
+            $type_office = $request->input('type_office');
+            $user_id = $request->input('user_id');
+            if ($type_office == 1){
+                $type_office = 0;
+            }else{
+                $type_office = 1;
+            }
             $department = Department::findOrFail($id);
             $department->update([
-                'title' => $data['title'],
-                'code' => $data['code'],
-                'type_office' => $data['type_office'],
-                'campuses' => $data['campuses'],
-                'user_id' => $data['user_id'],
+                'title' => $title,
+                'code' => $code,
+                'type_office' => $type_office,
+                'campuses' => $ids_campuses,
+                'user_id' => $user_id['id'],
                 'active' => 1
             ]);
 
             DB::commit();
-            Session::flash('success', 'Cập nhật thành công phòng ban');
-            return redirect()->route('admin.article.edit', $id);
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Cập nhật thành công phòng ban',
+            ));
         } catch (\Exception $exception) {
             \Log::info([
                 'message' => $exception->getMessage(),
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa cập nhật được phòng ban');
-            return back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa cập nhật được phòng ban',
+            ));
         }
     }
 

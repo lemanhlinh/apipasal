@@ -20,7 +20,7 @@ class CampusesController extends Controller
      */
     public function index()
     {
-        $campuses = Campuses::with('classrooms')->get();
+        $campuses = Campuses::with('classrooms')->orderBy('id', 'DESC')->get();
         return $campuses;
     }
 
@@ -40,22 +40,31 @@ class CampusesController extends Controller
      * @param  CreateCampuses  $req
      * @return \Illuminate\Http\Response
      */
-    public function store(CreateCampuses $req)
+    public function store(Request $request)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
+            $code = $request->input('code');
+            $code_short = $request->input('code_short');
+            $type_campuses = $request->input('type_campuses');
+            if ($type_campuses == 1){
+                $type_campuses = 0;
+            }else{
+                $type_campuses = 1;
+            }
             $campuses = Campuses::create([
-                'title' => $data['title'],
-                'code' => $data['code'],
-                'code_short' => $data['code_short'],
-                'type_campuses' => $data['type_campuses'],
+                'title' => $title,
+                'code' => $code,
+                'code_short' => $code_short,
+                'type_campuses' => $type_campuses,
                 'active' => 1,
             ]);
-            $classroom = $data['classrooms'];
+            $classroom = $request->input('classrooms');
+
             foreach ($classroom as $class){
                 $campuses->classrooms()->create([
-                    'title' => $class['title_class']
+                    'title' => $class['title']
                 ]);
             }
 
@@ -107,26 +116,38 @@ class CampusesController extends Controller
      * @param  \App\Models\Campuses  $campuses
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateCampuses $req, $id)
+    public function update(Request $request, $id)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
+            $code = $request->input('code');
+            $code_short = $request->input('code_short');
+            $type_campuses = $request->input('type_campuses');
+            if ($type_campuses == 1){
+                $type_campuses = 0;
+            }else{
+                $type_campuses = 1;
+            }
             $campuses = Campuses::findOrFail($id);
             $campuses->update([
-                'title' => $data['title'],
-                'code' => $data['code'],
-                'code_short' => $data['code_short'],
-                'type_campuses' => $data['type_campuses'],
+                'title' => $title,
+                'code' => $code,
+                'code_short' => $code_short,
+                'type_campuses' => $type_campuses,
                 'active' => 1,
             ]);
-            $classroom = $data['classrooms'];
+            $classroom = $request->input('classrooms');
             foreach ($classroom as $class){
                 $campuses->classrooms()->updateOrCreate([
-                    'title' => $class['title_class']
+                    'title' => $class['title']
                 ]);
             }
             DB::commit();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Cập nhật thành công trung tâm',
+            ));
             Session::flash('success', 'Cập nhật thành công trung tâm');
             return redirect()->back();
         } catch (\Exception $exception) {
@@ -135,8 +156,10 @@ class CampusesController extends Controller
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa cập nhật được trung tâm');
-            return back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa cập nhật được trung tâm',
+            ));
         }
     }
 
