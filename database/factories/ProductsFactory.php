@@ -16,7 +16,7 @@ class ProductsFactory extends Factory
         return [
             'title' => $this->faker->sentence,
             'cat_id' => $this->faker->numberBetween(1,10),
-            'code' => $this->faker->sentence,
+            'code' => $this->faker->regexify('[A-Z]{2}[0-4]{1}'),
             'active' => $this->faker->numberBetween(0,1),
             'price' => $this->faker->numberBetween(1000, 500000),
             'type' => $this->faker->numberBetween(0,1),

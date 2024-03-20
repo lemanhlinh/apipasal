@@ -20,7 +20,7 @@ class CourseCategoriesController extends Controller
      */
     public function index()
     {
-        $cat = CourseCategories::with('courses')->get();
+        $cat = CourseCategories::with('courses')->orderBy('id','DESC')->get();
         return $cat;
     }
 
@@ -40,19 +40,21 @@ class CourseCategoriesController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CreateCourseCategory $req)
+    public function store(Request  $request)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
             CourseCategories::create([
-                'title' => $data['title'],
+                'title' => $title,
                 'active' => 1,
             ]);
 
             DB::commit();
-            Session::flash('success', 'Đã thêm mới nhóm khóa học');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Đã thêm mới nhóm khóa học',
+            ));
         } catch (\Exception $ex) {
             DB::rollBack();
             \Log::info([
@@ -60,8 +62,10 @@ class CourseCategoriesController extends Controller
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa thêm được nhóm khóa học');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Chưa thêm được nhóm khóa học',
+            ));
         }
     }
 

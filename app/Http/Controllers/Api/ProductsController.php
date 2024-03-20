@@ -20,7 +20,7 @@ class ProductsController extends Controller
      */
     public function index()
     {
-        $product = Products::with('cat')->get();
+        $product = Products::with(['cat','productCourses'])->orderBy('id','DESC')->get();
         return $product;
     }
 
@@ -40,20 +40,24 @@ class ProductsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CreateProduct $req)
+    public function store(Request $request)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
+            $cat_id = $request->input('cat_id');
+            $code = $request->input('code');
+            $price = $request->input('price');
+            $type = $request->input('type');
             $product = Products::create([
-                'title' => $data['title'],
-                'cat_id' => $data['cat_id'],
-                'code' => $data['code'],
-                'price' => $data['price'],
-                'type' => $data['type'],
+                'title' => $title,
+                'cat_id' => $cat_id,
+                'code' => $code,
+                'price' => $price,
+                'type' => $type,
                 'active' => 1,
             ]);
-            $courses = $data['courses'];
+            $courses = $request->input('courses');
             foreach ($courses as $class){
                 $product->productCourses()->create([
                     'product_id' => $product->id,
@@ -63,8 +67,10 @@ class ProductsController extends Controller
             }
 
             DB::commit();
-            Session::flash('success', 'Đã thêm mới sản phẩm');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'message' => 'Đã thêm mới sản phẩm'
+            ));
         } catch (\Exception $ex) {
             DB::rollBack();
             \Log::info([
@@ -72,8 +78,10 @@ class ProductsController extends Controller
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa thêm được sản phẩm');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => true,
+                'message' => 'Chưa thêm được sản phẩm'
+            ));
         }
     }
 
@@ -106,22 +114,26 @@ class ProductsController extends Controller
      * @param  \App\Models\Products  $products
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateProduct $req, $id)
+    public function update(Request $request, $id)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
+            $cat_id = $request->input('cat_id');
+            $code = $request->input('code');
+            $price = $request->input('price');
+            $type = $request->input('type');
             $product = Products::findOrFail($id);
             $product->update([
-                'title' => $data['title'],
-                'cat_id' => $data['cat_id'],
-                'code' => $data['code'],
-                'price' => $data['price'],
-                'type' => $data['type'],
+                'title' => $title,
+                'cat_id' => $cat_id,
+                'code' => $code,
+                'price' => $price,
+                'type' => $type,
                 'active' => 1,
             ]);
 
-            $courses = $data['courses'];
+            $courses = $request->input('courses');
             foreach ($courses as $class){
                 $product->productCourses()->updateOrCreate([
                     'product_id' => $product->id,
@@ -130,16 +142,20 @@ class ProductsController extends Controller
                 ]);
             }
             DB::commit();
-            Session::flash('success', 'Cập nhật thành công');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'message' => 'Cập nhật thành công'
+            ));
         } catch (\Exception $exception) {
             \Log::info([
                 'message' => $exception->getMessage(),
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa cập nhật được');
-            return back();
+            return response()->json(array(
+                'error' => true,
+                'message' => 'Chưa cập nhật được'
+            ));
         }
     }
 

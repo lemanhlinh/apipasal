@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Courses extends Model
 {
     use HasFactory;
+    protected $guarded = ['id'];
 
     public function courseCategory()
     {

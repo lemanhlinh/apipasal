@@ -20,7 +20,7 @@ class ProductCategoriesController extends Controller
      */
     public function index()
     {
-        $cat = ProductCategories::with('products')->get();
+        $cat = ProductCategories::with('products')->orderBy('id','DESC')->get();
         return $cat;
     }
 
@@ -40,19 +40,21 @@ class ProductCategoriesController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CreateProductCategory $req)
+    public function store(Request $request)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
             ProductCategories::create([
-                'title' => $data['title'],
+                'title' => $title,
                 'active' => 1,
             ]);
 
             DB::commit();
-            Session::flash('success', 'Đã thêm mới nhóm sản phẩm');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Đã thêm mới nhóm sản phẩm',
+            ));
         } catch (\Exception $ex) {
             DB::rollBack();
             \Log::info([
@@ -60,8 +62,10 @@ class ProductCategoriesController extends Controller
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa thêm được nhóm sản phẩm');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa thêm được nhóm sản phẩm',
+            ));
         }
     }
 
@@ -94,27 +98,31 @@ class ProductCategoriesController extends Controller
      * @param  \App\Models\ProductCategories  $productCategories
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateProductCategory $req, $id)
+    public function update(Request $request, $id)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
             $cat = ProductCategories::findOrFail($id);
             $cat->update([
-                'title' => $data['title'],
+                'title' => $title,
                 'active' => 1,
             ]);
             DB::commit();
-            Session::flash('success', 'Cập nhật thành công');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Cập nhật thành công',
+            ));
         } catch (\Exception $exception) {
             \Log::info([
                 'message' => $exception->getMessage(),
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa cập nhật được');
-            return back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa cập nhật được',
+            ));
         }
     }
 

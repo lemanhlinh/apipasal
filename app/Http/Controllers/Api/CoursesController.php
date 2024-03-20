@@ -20,7 +20,7 @@ class CoursesController extends Controller
      */
     public function index()
     {
-        $courses = Courses::with('courseCategory')->get();
+        $courses = Courses::with('courseCategory')->orderBy('id','DESC')->get();
         return $courses;
     }
 
@@ -40,22 +40,27 @@ class CoursesController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CreateCourses $req)
+    public function store(Request $request)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
+            $cat_id = $request->input('cat_id');
+            $code = $request->input('code');
+            $number_course = $request->input('number_course');
             Courses::create([
-                'title' => $data['title'],
-                'cat_id' => $data['cat_id'],
-                'code' => $data['code'],
-                'number_course' => $data['number_course'],
+                'title' => $title,
+                'cat_id' => $cat_id['id'],
+                'code' => $code,
+                'number_course' => $number_course,
                 'active' => 1,
             ]);
 
             DB::commit();
-            Session::flash('success', 'Đã thêm mới khóa học');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Đã thêm mới khóa học',
+            ));
         } catch (\Exception $ex) {
             DB::rollBack();
             \Log::info([
@@ -63,8 +68,10 @@ class CoursesController extends Controller
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa thêm được khóa học');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa thêm được khóa học',
+            ));
         }
     }
 
@@ -97,30 +104,37 @@ class CoursesController extends Controller
      * @param  \App\Models\Courses  $courses
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateCourses $req, $id)
+    public function update(Request $request, $id)
     {
         DB::beginTransaction();
         try {
-            $data = $req->validated();
+            $title = $request->input('title');
+            $cat_id = $request->input('cat_id');
+            $code = $request->input('code');
+            $number_course = $request->input('number_course');
             $cat = Courses::findOrFail($id);
             $cat->update([
-                'title' => $data['title'],
-                'cat_id' => $data['cat_id'],
-                'code' => $data['code'],
-                'number_course' => $data['number_course'],
+                'title' => $title,
+                'cat_id' => $cat_id['id'],
+                'code' => $code,
+                'number_course' => $number_course,
                 'active' => 1,
             ]);
             DB::commit();
-            Session::flash('success', 'Cập nhật thành công');
-            return redirect()->back();
+            return response()->json(array(
+                'error' => false,
+                'result' => 'Cập nhật thành công',
+            ));
         } catch (\Exception $exception) {
             \Log::info([
                 'message' => $exception->getMessage(),
                 'line' => __LINE__,
                 'method' => __METHOD__
             ]);
-            Session::flash('danger', 'Chưa cập nhật được');
-            return back();
+            return response()->json(array(
+                'error' => true,
+                'result' => 'Chưa cập nhật được',
+            ));
         }
     }
 
