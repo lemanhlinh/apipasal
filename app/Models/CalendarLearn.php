@@ -9,6 +9,9 @@ class CalendarLearn extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+      'days' => 'array'
+    ];
     protected $guarded = ['id'];
     protected $table = 'calendar_learn';
 }

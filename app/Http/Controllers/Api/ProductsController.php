@@ -20,8 +20,17 @@ class ProductsController extends Controller
      */
     public function index()
     {
-        $product = Products::with(['cat','productCourses'])->orderBy('id','DESC')->get();
-        return $product;
+        $products = Products::with(['cat' => function($q){
+            $q->select('id','title','active');
+        }])->with(['courses'])->orderBy('id','DESC')->get();
+
+        foreach ($products as $product) {
+            foreach ($product->courses as $courses) {
+                $courses->ordering = $courses->pivot->ordering;
+            }
+        }
+
+        return $products;
     }
 
     /**
@@ -46,24 +55,24 @@ class ProductsController extends Controller
         try {
             $title = $request->input('title');
             $cat_id = $request->input('cat_id');
+            $cat = $request->input('cat');
             $code = $request->input('code');
             $price = $request->input('price');
             $type = $request->input('type');
             $product = Products::create([
                 'title' => $title,
-                'cat_id' => $cat_id,
+                'cat_id' => $cat['id'],
                 'code' => $code,
                 'price' => $price,
                 'type' => $type,
                 'active' => 1,
             ]);
+
             $courses = $request->input('courses');
-            foreach ($courses as $class){
-                $product->productCourses()->create([
-                    'product_id' => $product->id,
-                    'course_id' => $class->course_id,
-                    'ordering' => $class->ordering,
-                ]);
+            if (isset($courses)) {
+                foreach ($courses as $coursId) {
+                    $product->courses()->attach($coursId['id'], ['ordering' => $coursId['ordering']]);
+                }
             }
 
             DB::commit();
@@ -120,27 +129,29 @@ class ProductsController extends Controller
         try {
             $title = $request->input('title');
             $cat_id = $request->input('cat_id');
+            $cat = $request->input('cat');
             $code = $request->input('code');
             $price = $request->input('price');
             $type = $request->input('type');
             $product = Products::findOrFail($id);
             $product->update([
                 'title' => $title,
-                'cat_id' => $cat_id,
+                'cat_id' => $cat['id'],
                 'code' => $code,
                 'price' => $price,
                 'type' => $type,
                 'active' => 1,
             ]);
 
+            $product->courses()->detach();
+
             $courses = $request->input('courses');
-            foreach ($courses as $class){
-                $product->productCourses()->updateOrCreate([
-                    'product_id' => $product->id,
-                    'course_id' => $class->course_id,
-                    'ordering' => $class->ordering,
-                ]);
+            if (isset($courses)) {
+                foreach ($courses as $coursId) {
+                    $product->courses()->attach($coursId['id'], ['ordering' => $coursId['ordering']]);
+                }
             }
+
             DB::commit();
             return response()->json(array(
                 'error' => false,

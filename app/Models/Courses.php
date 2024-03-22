@@ -14,4 +14,9 @@ class Courses extends Model
     {
         return $this->belongsTo(CourseCategories::class, 'cat_id', 'id');
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(Products::class,'product_course','course_id','product_id');
+    }
 }

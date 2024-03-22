@@ -9,13 +9,15 @@ class Products extends Model
 {
     use HasFactory;
 
+    protected $guarded = ['id'];
+
     public function cat()
     {
         return $this->belongsTo(ProductCategories::class,'cat_id','id');
     }
 
-    public function productCourses()
+    public function courses()
     {
-        return $this->hasMany(ProductCourse::class,'product_id','id');
+        return $this->belongsToMany(Courses::class,'product_course','product_id','course_id')->withPivot('ordering');
     }
 }

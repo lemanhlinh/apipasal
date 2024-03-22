@@ -19,7 +19,7 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $departments = Department::with(['user_manage','users','regencies'])->orderBy('id', 'DESC')->get();
+        $departments = Department::with(['user_manage','users','regencies','campuses'])->orderBy('id', 'DESC')->get();
         return $departments;
     }
 
@@ -46,22 +46,21 @@ class DepartmentController extends Controller
             $title = $request->input('title');
             $code = $request->input('code');
             $campuses = $request->input('campuses');
-            $ids_campuses = collect($campuses)->pluck('id')->toArray();
             $type_office = $request->input('type_office');
-            $user_id = $request->input('user_id');
-            if ($type_office == 1){
-                $type_office = 0;
-            }else{
-                $type_office = 1;
-            }
-            Department::create([
+            $user_id = $request->input('user_manage');
+            $department = Department::create([
                 'title' => $title,
                 'code' => $code,
                 'type_office' => $type_office,
-                'campuses' => $ids_campuses,
                 'user_id' => $user_id['id'],
                 'active' => 1
             ]);
+
+            if (isset($campuses)) {
+                foreach ($campuses as $campuseId) {
+                    $department->campuses()->attach($campuseId['id']);
+                }
+            }
 
             DB::commit();
             return response()->json(array(
@@ -118,23 +117,23 @@ class DepartmentController extends Controller
             $title = $request->input('title');
             $code = $request->input('code');
             $campuses = $request->input('campuses');
-            $ids_campuses = collect($campuses)->pluck('id')->toArray();
             $type_office = $request->input('type_office');
-            $user_id = $request->input('user_id');
-            if ($type_office == 1){
-                $type_office = 0;
-            }else{
-                $type_office = 1;
-            }
+            $user_id = $request->input('user_manage');
             $department = Department::findOrFail($id);
             $department->update([
                 'title' => $title,
                 'code' => $code,
                 'type_office' => $type_office,
-                'campuses' => $ids_campuses,
                 'user_id' => $user_id['id'],
                 'active' => 1
             ]);
+            $department->campuses()->detach();
+
+            if (isset($campuses)) {
+                foreach ($campuses as $campuseId) {
+                    $department->campuses()->attach($campuseId['id']);
+                }
+            }
 
             DB::commit();
             return response()->json(array(

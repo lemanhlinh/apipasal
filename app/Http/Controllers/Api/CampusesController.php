@@ -20,7 +20,20 @@ class CampusesController extends Controller
      */
     public function index()
     {
-        $campuses = Campuses::with('classrooms')->orderBy('id', 'DESC')->get();
+        $campuses = Campuses::with(['classrooms' => function($q){
+            $q->select('id','title','campuses_id');
+        }])->with(['departments' => function($q){
+            $q->withCount('users');
+        }])->orderBy('id', 'DESC')->get();
+
+        foreach ($campuses as $campus) {
+            $totalUsersCount = 0;
+            foreach ($campus->departments as $department) {
+                $totalUsersCount += $department->users_count;
+            }
+            $campus->total_users_count = $totalUsersCount;
+        }
+
         return $campuses;
     }
 
@@ -48,11 +61,6 @@ class CampusesController extends Controller
             $code = $request->input('code');
             $code_short = $request->input('code_short');
             $type_campuses = $request->input('type_campuses');
-            if ($type_campuses == 1){
-                $type_campuses = 0;
-            }else{
-                $type_campuses = 1;
-            }
             $campuses = Campuses::create([
                 'title' => $title,
                 'code' => $code,
@@ -124,11 +132,6 @@ class CampusesController extends Controller
             $code = $request->input('code');
             $code_short = $request->input('code_short');
             $type_campuses = $request->input('type_campuses');
-            if ($type_campuses == 1){
-                $type_campuses = 0;
-            }else{
-                $type_campuses = 1;
-            }
             $campuses = Campuses::findOrFail($id);
             $campuses->update([
                 'title' => $title,
@@ -137,11 +140,19 @@ class CampusesController extends Controller
                 'type_campuses' => $type_campuses,
                 'active' => 1,
             ]);
-            $classroom = $request->input('classrooms');
-            foreach ($classroom as $class){
-                $campuses->classrooms()->updateOrCreate([
-                    'title' => $class['title']
-                ]);
+
+            $classrooms = $request->input('classrooms');
+
+            $classroomTitles = collect($classrooms)->pluck('title')->all();
+
+            $campuses->classrooms()
+                ->whereNotIn('title', $classroomTitles)
+                ->delete();
+
+            foreach ($classrooms as $classroom) {
+                $campuses->classrooms()->updateOrCreate(
+                    ['title' => $classroom['title']]
+                );
             }
             DB::commit();
             return response()->json(array(

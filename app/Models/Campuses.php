@@ -18,4 +18,9 @@ class Campuses extends Model
     {
         return $this->hasMany(CampusesClassroom::class, 'campuses_id', 'id');
     }
+
+    public function departments()
+    {
+        return $this->belongsToMany(Department::class);
+    }
 }

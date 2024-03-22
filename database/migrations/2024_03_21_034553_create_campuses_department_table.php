@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateProductCourseTable extends Migration
+class CreateCampusesDepartmentTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,10 @@ class CreateProductCourseTable extends Migration
      */
     public function up()
     {
-        Schema::create('product_course', function (Blueprint $table) {
+        Schema::create('campuses_department', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('product_id');
-            $table->unsignedInteger('course_id');
-            $table->integer('ordering');
+            $table->unsignedInteger('campuses_id');
+            $table->unsignedInteger('department_id');
             $table->timestamps();
         });
     }
@@ -29,6 +28,6 @@ class CreateProductCourseTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('product_course');
+        Schema::dropIfExists('campuses_department');
     }
 }

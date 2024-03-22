@@ -19,7 +19,6 @@ class CreateDepartmentTable extends Migration
             $table->string('code');
             $table->tinyInteger('type_office')->default(0)->comment('0: Back office; 1: Trung tâm');
             $table->tinyInteger('active')->default(0)->comment('0: Không hoạt động; 1: Hoạt động');
-            $table->string('campuses');
             $table->integer('user_id');
             $table->integer('parent_id')->nullable();
             $table->timestamps();

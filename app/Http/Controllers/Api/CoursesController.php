@@ -46,11 +46,12 @@ class CoursesController extends Controller
         try {
             $title = $request->input('title');
             $cat_id = $request->input('cat_id');
+            $course_category = $request->input('course_category');
             $code = $request->input('code');
             $number_course = $request->input('number_course');
             Courses::create([
                 'title' => $title,
-                'cat_id' => $cat_id['id'],
+                'cat_id' => $course_category['id'],
                 'code' => $code,
                 'number_course' => $number_course,
                 'active' => 1,
@@ -110,12 +111,13 @@ class CoursesController extends Controller
         try {
             $title = $request->input('title');
             $cat_id = $request->input('cat_id');
+            $course_category = $request->input('course_category');
             $code = $request->input('code');
             $number_course = $request->input('number_course');
             $cat = Courses::findOrFail($id);
             $cat->update([
                 'title' => $title,
-                'cat_id' => $cat_id['id'],
+                'cat_id' => $course_category['id'],
                 'code' => $code,
                 'number_course' => $number_course,
                 'active' => 1,

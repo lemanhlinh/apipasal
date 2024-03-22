@@ -20,7 +20,7 @@ class CalendarLearnController extends Controller
      */
     public function index()
     {
-        $calendar = CalendarLearn::all();
+        $calendar = CalendarLearn::orderBy('id','DESC')->get();
         return $calendar;
     }
 
@@ -48,7 +48,7 @@ class CalendarLearnController extends Controller
             $days = $request->input('days');
             CalendarLearn::create([
                 'title' => $title,
-                'days' => json_encode($days),
+                'days' => $days,
                 'active' => 1,
             ]);
 
@@ -109,7 +109,7 @@ class CalendarLearnController extends Controller
             $cat = CalendarLearn::findOrFail($id);
             $cat->update([
                 'title' => $title,
-                'days' => json_encode($days),
+                'days' => $days,
                 'active' => 1,
             ]);
             DB::commit();
