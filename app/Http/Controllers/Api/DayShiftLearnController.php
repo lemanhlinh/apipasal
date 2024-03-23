@@ -20,7 +20,7 @@ class DayShiftLearnController extends Controller
      */
     public function index()
     {
-        $dayShift = DayShiftLearn::all();
+        $dayShift = DayShiftLearn::orderBy('id','DESC')->get();
         return $dayShift;
     }
 

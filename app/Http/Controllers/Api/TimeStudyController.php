@@ -20,7 +20,7 @@ class TimeStudyController extends Controller
      */
     public function index()
     {
-        $timeStudy = TimeStudy::all();
+        $timeStudy = TimeStudy::orderBy('id','DESC')->get();
         return $timeStudy;
     }
 

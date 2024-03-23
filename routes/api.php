@@ -24,6 +24,7 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
     Route::post('update-trung-tam/{id}', 'CampusesController@update');
 
     Route::post('phong-ban', 'DepartmentController@index');
+    Route::post('phong-ban-phu/{id}', 'DepartmentController@listSub');
     Route::post('tao-phong-ban', 'DepartmentController@store');
     Route::post('update-phong-ban/{id}', 'DepartmentController@update');
 

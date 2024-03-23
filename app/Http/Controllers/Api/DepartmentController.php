@@ -23,6 +23,13 @@ class DepartmentController extends Controller
         return $departments;
     }
 
+    public function listSub($id)
+    {
+        $departments = Department::with(['user_manage','users','regencies','campuses'])->withDepth()->where('id',$id)
+            ->orderBy('id', 'DESC')->get();
+        return $departments;
+    }
+
     /**
      * Show the form for creating a new resource.
      *
