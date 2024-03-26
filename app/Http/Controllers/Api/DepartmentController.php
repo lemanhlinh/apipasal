@@ -19,15 +19,66 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $departments = Department::with(['user_manage','users','regencies','campuses'])->orderBy('id', 'DESC')->get();
+        $departments = Department::with(['user_manage','users','regencies','campuses'])->whereIsRoot()->orderBy('id', 'DESC')->get();
+        return $departments;
+    }
+
+    public function listAll()
+    {
+        $departments = Department::with(['user_manage','users','regencies','campuses'])->orderBy('ordering','ASC')->orderBy('id', 'DESC')->get()->toTree();
+        foreach ($departments as $department){
+            $department->title_rename = $department->title;
+            if ($department->children){
+                $traverse = function ($categories, $prefix = '-') use (&$traverse) {
+                    foreach ($categories as $category) {
+                        $category->title_rename = $prefix.' '.$category->title;
+                        $traverse($category->children, $prefix.'-');
+                    }
+                };
+
+                $traverse($department->children);
+            }
+        }
+        $departments = $this->flattenChildren($departments);
         return $departments;
     }
 
     public function listSub($id)
     {
-        $departments = Department::with(['user_manage','users','regencies','campuses'])->withDepth()->where('id',$id)
-            ->orderBy('id', 'DESC')->get();
+        $departments[0] = Department::with(['user_manage','users','regencies','campuses'])->orderBy('ordering','ASC')->descendantsAndSelf($id)->toTree()->first();
+        foreach ($departments as $department){
+            $department->title_rename = $department->title;
+            if ($department->children){
+                $traverse = function ($categories, $prefix = '-') use (&$traverse) {
+                    foreach ($categories as $category) {
+                        $category->title_rename = $prefix.' '.$category->title;
+                        $traverse($category->children, $prefix.'-');
+                    }
+                };
+
+                $traverse($department->children);
+            }
+        }
+        $departments = $this->flattenChildren($departments);
         return $departments;
+    }
+
+    public function flattenChildren($nodes, $parent = null) {
+        $flattenedNodes = [];
+
+        foreach ($nodes as $node) {
+            $node['parent'] = $parent; // Thêm giá trị parent cho node hiện tại
+
+            $flattenedNodes[] = $node;
+
+            if (!empty($node['children'])) {
+                $children = $this->flattenChildren($node['children'], $node); // Truyền node hiện tại làm parent cho children
+                $flattenedNodes = array_merge($flattenedNodes, $children);
+                unset($node['children']);
+            }
+        }
+
+        return $flattenedNodes;
     }
 
     /**
@@ -55,18 +106,27 @@ class DepartmentController extends Controller
             $campuses = $request->input('campuses');
             $type_office = $request->input('type_office');
             $user_id = $request->input('user_manage');
+            $ordering = $request->input('ordering');
             $department = Department::create([
                 'title' => $title,
                 'code' => $code,
                 'type_office' => $type_office,
                 'user_id' => $user_id['id'],
-                'active' => 1
+                'active' => 1,
+                'ordering' => $ordering,
             ]);
-
             if (isset($campuses)) {
                 foreach ($campuses as $campuseId) {
-                    $department->campuses()->attach($campuseId['id']);
+                    if ($campuseId){
+                        $department->campuses()->attach($campuseId['id']);
+                    }
                 }
+            }
+
+            $parent =  $request->input('parent');
+            if ($parent){
+                $note = Department::find($parent['id']);
+                $note->appendNode($department);
             }
 
             DB::commit();
@@ -126,19 +186,30 @@ class DepartmentController extends Controller
             $campuses = $request->input('campuses');
             $type_office = $request->input('type_office');
             $user_id = $request->input('user_manage');
+            $ordering = $request->input('ordering');
             $department = Department::findOrFail($id);
             $department->update([
                 'title' => $title,
                 'code' => $code,
                 'type_office' => $type_office,
                 'user_id' => $user_id['id'],
-                'active' => 1
+                'active' => 1,
+                'ordering' => $ordering,
             ]);
+
+            $parent =  $request->input('parent');
+            if ($parent){
+                $note = Department::find($parent['id']);
+                $note->appendNode($department);
+            }
+
             $department->campuses()->detach();
 
             if (isset($campuses)) {
                 foreach ($campuses as $campuseId) {
-                    $department->campuses()->attach($campuseId['id']);
+                    if ($campuseId){
+                        $department->campuses()->attach($campuseId['id']);
+                    }
                 }
             }
 

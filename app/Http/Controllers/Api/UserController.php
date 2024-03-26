@@ -22,6 +22,11 @@ class UserController extends Controller
     public function index()
     {
         $users = User::with(['department','regency'])->orderBy('id', 'DESC')->get();
+        foreach ($users as $user){
+            if ($user->department){
+                $user->department->title_rename = $user->department->title;
+            }
+        }
         return $users;
     }
 
@@ -52,7 +57,9 @@ class UserController extends Controller
             $birthday = $request->input('birthday');
             $image = $request->input('image');
             $department_id = $request->input('department_id');
+            $department = $request->input('department');
             $regency_id = $request->input('regency_id');
+            $regency = $request->input('regency');
             User::create([
                 'name' => $name,
                 'email' => $email,
@@ -60,8 +67,8 @@ class UserController extends Controller
                 'phone' => $phone,
                 'birthday' => Carbon::parse($birthday)->toDateString(),
                 'image' => $image,
-                'department_id' => $department_id['id'],
-                'regency_id' => $regency_id['id'],
+                'department_id' => $department['id'],
+                'regency_id' => $regency['id'],
                 'used_time' => now(),
                 'active' => 1
             ]);
@@ -125,7 +132,9 @@ class UserController extends Controller
             $birthday = $request->input('birthday');
             $image = $request->input('image');
             $department_id = $request->input('department_id');
+            $department = $request->input('department');
             $regency_id = $request->input('regency_id');
+            $regency = $request->input('regency');
             $user = User::findOrFail($id);
             $user->update([
                 'name' => $name,
@@ -134,8 +143,8 @@ class UserController extends Controller
                 'phone' => $phone,
                 'birthday' => Carbon::parse($birthday)->toDateString(),
                 'image' => $image,
-                'department_id' => $department_id['id'],
-                'regency_id' => $regency_id['id'],
+                'department_id' => $department['id'],
+                'regency_id' => $regency['id'],
                 'used_time' => now(),
                 'active' => 1
             ]);
