@@ -64,4 +64,20 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
     Route::post('ca-hoc', 'TimeStudyController@index');
     Route::post('tao-ca-hoc', 'TimeStudyController@store');
     Route::post('update-ca-hoc/{id}', 'TimeStudyController@update');
+
+    Route::post('nguon-khach-hang', 'BusinessSettingSourceCustomerController@index');
+    Route::post('tao-nguon-khach-hang', 'BusinessSettingSourceCustomerController@store');
+    Route::post('update-nguon-khach-hang/{id}', 'BusinessSettingSourceCustomerController@update');
+
+    Route::post('loai-demo-trai-nghiem', 'BusinessSettingDemoExperienceController@index');
+    Route::post('tao-loai-demo-trai-nghiem', 'BusinessSettingDemoExperienceController@store');
+    Route::post('update-loai-demo-trai-nghiem/{id}', 'BusinessSettingDemoExperienceController@update');
+
+    Route::post('ngay-vao-kho', 'BusinessSettingWareHouseRuleController@index');
+    Route::post('tao-ngay-vao-kho', 'BusinessSettingWareHouseRuleController@store');
+    Route::post('update-ngay-vao-kho/{id}', 'BusinessSettingWareHouseRuleController@update');
+
+    Route::post('doi-tac', 'BusinessPartnerController@index');
+    Route::post('tao-doi-tac', 'BusinessPartnerController@store');
+    Route::post('update-doi-tac/{id}', 'BusinessPartnerController@update');
 });
