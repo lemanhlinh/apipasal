@@ -19,6 +19,6 @@ class BusinessPartner extends Model
 
     public function campuses()
     {
-        return $this->hasOne(Campuses::class, 'campuses_id', 'id');
+        return $this->hasOne(Campuses::class, 'id', 'campuses_id');
     }
 }

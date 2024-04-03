@@ -78,6 +78,12 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
     Route::post('update-ngay-vao-kho/{id}', 'BusinessSettingWareHouseRuleController@update');
 
     Route::post('doi-tac', 'BusinessPartnerController@index');
+    Route::post('chi-tiet-doi-tac/{id}', 'BusinessPartnerController@edit');
     Route::post('tao-doi-tac', 'BusinessPartnerController@store');
     Route::post('update-doi-tac/{id}', 'BusinessPartnerController@update');
+
+    Route::post('thi-truong', 'BusinessMarketController@index');
+    Route::post('chi-tiet-thi-truong/{id}', 'BusinessMarketController@edit');
+    Route::post('tao-thi-truong', 'BusinessMarketController@store');
+    Route::post('update-thi0-truong/{id}', 'BusinessMarketController@update');
 });
