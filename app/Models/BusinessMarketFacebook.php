@@ -8,4 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class BusinessMarketFacebook extends Model
 {
     use HasFactory;
+    protected $table = 'business_market_facebook';
 }

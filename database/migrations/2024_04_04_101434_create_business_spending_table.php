@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateBusinessMarketFacebookTable extends Migration
+class CreateBusinessSpendingTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,11 @@ class CreateBusinessMarketFacebookTable extends Migration
      */
     public function up()
     {
-        Schema::create('business_market_facebook', function (Blueprint $table) {
+        Schema::create('business_spending', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('link');
-            $table->integer('market_id');
+            $table->string('month');
+            $table->tinyInteger('active')->default(0)->comment('0: Không hoạt động; 1: Hoạt động');
             $table->timestamps();
         });
     }
@@ -29,6 +29,6 @@ class CreateBusinessMarketFacebookTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('business_market_facebook');
+        Schema::dropIfExists('business_spending');
     }
 }

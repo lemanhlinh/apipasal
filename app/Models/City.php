@@ -5,9 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class BusinessMarketVolume extends Model
+class City extends Model
 {
-    use HasFactory;
-
-    protected $table = 'business_market_volume';
+//    use HasFactory;
+    protected $table = 'cities';
 }

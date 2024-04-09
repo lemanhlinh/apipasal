@@ -23,4 +23,9 @@ class Campuses extends Model
     {
         return $this->belongsToMany(Department::class);
     }
+
+    public function businessPolicy()
+    {
+        return $this->belongsToMany(BusinessPolicy::class);
+    }
 }

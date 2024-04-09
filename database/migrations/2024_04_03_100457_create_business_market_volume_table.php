@@ -17,7 +17,7 @@ class CreateBusinessMarketVolumeTable extends Migration
             $table->id();
             $table->string('year');
             $table->integer('total_year');
-            $table->text('more_level'); // biến động theo phân khúc
+            $table->text('more_level')->nullable(); // biến động theo phân khúc
             $table->integer('market_id');
             $table->timestamps();
         });

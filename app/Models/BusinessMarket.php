@@ -28,4 +28,14 @@ class BusinessMarket extends Model
     {
         return $this->hasOne(Campuses::class, 'id', 'campuses_id');
     }
+
+    public function cities()
+    {
+        return $this->belongsTo(City::class, 'city_id','code');
+    }
+
+    public function districts()
+    {
+        return $this->belongsTo(District::class, 'district_id','code');
+    }
 }

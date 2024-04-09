@@ -20,4 +20,9 @@ class Products extends Model
     {
         return $this->belongsToMany(Courses::class,'product_course','product_id','course_id')->withPivot('ordering');
     }
+
+    public function businessPolicyProduct()
+    {
+        return $this->belongsToMany(BusinessPolicyProduct::class);
+    }
 }

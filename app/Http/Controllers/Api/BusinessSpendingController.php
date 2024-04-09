@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\BusinessMarket;
+use App\Models\BusinessSpending;
 use Illuminate\Http\Request;
 
-class BusinessMarketController extends Controller
+class BusinessSpendingController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,8 +15,8 @@ class BusinessMarketController extends Controller
      */
     public function index()
     {
-        $markets = BusinessMarket::with(['campuses','volume','facebook','history','cities','districts'])->orderBy('id', 'DESC')->get();
-        return $markets;
+        $spendings = BusinessSpending::with(['spendingCampuses'])->orderBy('id', 'DESC')->get();
+        return $spendings;
     }
 
     /**
@@ -43,10 +43,10 @@ class BusinessMarketController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\BusinessMarket  $businessMarket
+     * @param  \App\Models\BusinessSpending  $businessSpending
      * @return \Illuminate\Http\Response
      */
-    public function show(BusinessMarket $businessMarket)
+    public function show(BusinessSpending $businessSpending)
     {
         //
     }
@@ -54,23 +54,22 @@ class BusinessMarketController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\BusinessMarket  $businessMarket
+     * @param  \App\Models\BusinessSpending  $businessSpending
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(BusinessSpending $businessSpending)
     {
-        $market = BusinessMarket::with(['campuses','volume','facebook','history','cities','districts'])->where('id',$id)->first();
-        return $market;
+        //
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\BusinessMarket  $businessMarket
+     * @param  \App\Models\BusinessSpending  $businessSpending
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, BusinessMarket $businessMarket)
+    public function update(Request $request, BusinessSpending $businessSpending)
     {
         //
     }
@@ -78,10 +77,10 @@ class BusinessMarketController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\BusinessMarket  $businessMarket
+     * @param  \App\Models\BusinessSpending  $businessSpending
      * @return \Illuminate\Http\Response
      */
-    public function destroy(BusinessMarket $businessMarket)
+    public function destroy(BusinessSpending $businessSpending)
     {
         //
     }

@@ -155,7 +155,6 @@ class BusinessPartnerController extends Controller
             $clues = $request->input('clue');
             if ($clues){
                 $clueTitles = collect($clues)->pluck('title')->all();
-
                 $partner->clue()
                     ->whereNotIn('title', $clueTitles)
                     ->delete();

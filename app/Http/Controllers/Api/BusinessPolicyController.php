@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\BusinessMarket;
+use App\Models\BusinessPolicy;
 use Illuminate\Http\Request;
 
-class BusinessMarketController extends Controller
+class BusinessPolicyController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,8 +15,8 @@ class BusinessMarketController extends Controller
      */
     public function index()
     {
-        $markets = BusinessMarket::with(['campuses','volume','facebook','history','cities','districts'])->orderBy('id', 'DESC')->get();
-        return $markets;
+        $policy = BusinessPolicy::with(['campuses'])->with(['businessPolicyProduct'])->orderBy('id', 'DESC')->get();
+        return $policy;
     }
 
     /**
@@ -43,10 +43,10 @@ class BusinessMarketController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\BusinessMarket  $businessMarket
+     * @param  \App\Models\BusinessPolicy  $businessPolicy
      * @return \Illuminate\Http\Response
      */
-    public function show(BusinessMarket $businessMarket)
+    public function show(BusinessPolicy $businessPolicy)
     {
         //
     }
@@ -54,23 +54,22 @@ class BusinessMarketController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\BusinessMarket  $businessMarket
+     * @param  \App\Models\BusinessPolicy  $businessPolicy
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(BusinessPolicy $businessPolicy)
     {
-        $market = BusinessMarket::with(['campuses','volume','facebook','history','cities','districts'])->where('id',$id)->first();
-        return $market;
+        //
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\BusinessMarket  $businessMarket
+     * @param  \App\Models\BusinessPolicy  $businessPolicy
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, BusinessMarket $businessMarket)
+    public function update(Request $request, BusinessPolicy $businessPolicy)
     {
         //
     }
@@ -78,10 +77,10 @@ class BusinessMarketController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\BusinessMarket  $businessMarket
+     * @param  \App\Models\BusinessPolicy  $businessPolicy
      * @return \Illuminate\Http\Response
      */
-    public function destroy(BusinessMarket $businessMarket)
+    public function destroy(BusinessPolicy $businessPolicy)
     {
         //
     }

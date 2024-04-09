@@ -15,8 +15,8 @@ class CreateBusinessMarketHistoryTable extends Migration
     {
         Schema::create('business_market_history', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->string('month');
+            $table->string('time_action');
+            $table->text('content');
             $table->integer('market_id');
             $table->timestamps();
         });

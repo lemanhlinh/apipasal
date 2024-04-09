@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class BusinessMarketHistory extends Model
 {
     use HasFactory;
+
+    protected $table = 'business_market_history';
 }
