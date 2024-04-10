@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
     {
         \App\Models\User::factory(1)->create([
             'name' => 'Admin',
-            'email' => 'linhlemanh209@gmail.com',
+            'email' => 'admin@finalstyle.com',
             'phone' => '0123456789',
             'password' => bcrypt(123456),
             'active' => 1,
