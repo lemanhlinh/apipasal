@@ -18,11 +18,14 @@ use Illuminate\Support\Facades\Auth;
 Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
     Route::post('login', 'AuthController@login');
     Route::post('logout', 'AuthController@logout');
+    Route::post('refresh', 'AuthController@refresh');
     Route::post('me', 'AuthController@me');
     Route::group(['middleware' => ['auth:api']], function () {
-        Route::post('trung-tam', 'CampusesController@index');
-        Route::post('tao-trung-tam', 'CampusesController@store');
-        Route::post('update-trung-tam/{id}', 'CampusesController@update');
+        Route::group(['middleware' => ['permission:view_campuses']], function () {
+            Route::post('trung-tam', 'CampusesController@index');
+            Route::post('tao-trung-tam', 'CampusesController@store');
+            Route::post('update-trung-tam/{id}', 'CampusesController@update');
+        });
 
         Route::post('phong-ban', 'DepartmentController@index');
         Route::post('phong-ban-all', 'DepartmentController@listAll');
