@@ -44,7 +44,7 @@ class CampusesController extends Controller
      */
     public function create()
     {
-        //
+        return true;
     }
 
     /**
@@ -183,5 +183,19 @@ class CampusesController extends Controller
     public function destroy(Campuses $campuses)
     {
         //
+    }
+
+    /**
+     * @param $id
+     * @return array
+     */
+    public function changeActive($id)
+    {
+        $campuses = Campuses::findOrFail($id);
+        $campuses->update(['active' => !$campuses->active]);
+        return [
+            'status' => true,
+            'message' => trans('message.change_active_article_success')
+        ];
     }
 }

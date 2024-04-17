@@ -136,8 +136,14 @@ class CalendarLearnController extends Controller
      * @param  \App\Models\CalendarLearn  $calendarLearn
      * @return \Illuminate\Http\Response
      */
-    public function destroy(CalendarLearn $calendarLearn)
+    public function destroy($id)
     {
-        //
+        $data = CalendarLearn::findOrFail($id);
+        $data->delete($id);
+
+        return [
+            'status' => true,
+            'message' => trans('message.delete_page_success')
+        ];
     }
 }

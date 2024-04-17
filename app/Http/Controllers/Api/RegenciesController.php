@@ -149,4 +149,18 @@ class RegenciesController extends Controller
     {
         //
     }
+
+    /**
+     * @param $id
+     * @return array
+     */
+    public function changeActive($id)
+    {
+        $regencies = Regencies::findOrFail($id);
+        $regencies->update(['active' => !$regencies->active]);
+        return [
+            'status' => true,
+            'message' => trans('message.change_active_article_success')
+        ];
+    }
 }

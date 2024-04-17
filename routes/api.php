@@ -21,24 +21,31 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
     Route::post('refresh', 'AuthController@refresh');
     Route::post('me', 'AuthController@me');
     Route::group(['middleware' => ['auth:api']], function () {
-        Route::group(['middleware' => ['permission:view_campuses']], function () {
-            Route::post('trung-tam', 'CampusesController@index');
+        Route::post('trung-tam', 'CampusesController@index')->middleware('permission:view_campuses');
+        Route::group(['middleware' => ['permission:create_campuses']], function () {
+            Route::post('check-tao-trung-tam', 'CampusesController@create');
             Route::post('tao-trung-tam', 'CampusesController@store');
+        });
+        Route::group(['middleware' => ['permission:edit_campuses']], function () {
             Route::post('update-trung-tam/{id}', 'CampusesController@update');
+            Route::post('active-trung-tam/{id}', 'CampusesController@changeActive');
         });
 
         Route::post('phong-ban', 'DepartmentController@index');
         Route::post('phong-ban-all', 'DepartmentController@listAll');
         Route::post('phong-ban-phu/{id}', 'DepartmentController@listSub');
+        Route::post('active-phong-ban/{id}', 'DepartmentController@changeActive');
         Route::post('tao-phong-ban', 'DepartmentController@store');
         Route::post('update-phong-ban/{id}', 'DepartmentController@update');
 
         Route::post('chuc-vu', 'RegenciesController@index');
         Route::post('tao-chuc-vu', 'RegenciesController@store');
+        Route::post('active-chuc-vu/{id}', 'RegenciesController@changeActive');
         Route::post('update-chuc-vu/{id}', 'RegenciesController@update');
 
         Route::post('nhan-vien', 'UserController@index');
         Route::post('tao-nhan-vien', 'UserController@store');
+        Route::post('active-nhan-vien/{id}', 'UserController@changeActive');
         Route::post('update-nhan-vien/{id}', 'UserController@update');
 
         Route::post('nhom-khoa-hoc', 'CourseCategoriesController@index');
@@ -55,17 +62,21 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
 
         Route::post('san-pham', 'ProductsController@index');
         Route::post('tao-san-pham', 'ProductsController@store');
+        Route::post('active-san-pham/{id}', 'ProductsController@changeActive');
         Route::post('update-san-pham/{id}', 'ProductsController@update');
 
         Route::post('thoi-gian-hoc', 'DayShiftLearnController@index');
+        Route::post('xoa-thoi-gian-hoc/{id}', 'DayShiftLearnController@destroy');
         Route::post('tao-thoi-gian-hoc', 'DayShiftLearnController@store');
         Route::post('update-thoi-gian-hoc/{id}', 'DayShiftLearnController@update');
 
         Route::post('lich-hoc', 'CalendarLearnController@index');
+        Route::post('xoa-lich-hoc/{id}', 'CalendarLearnController@destroy');
         Route::post('tao-lich-hoc', 'CalendarLearnController@store');
         Route::post('update-lich-hoc/{id}', 'CalendarLearnController@update');
 
         Route::post('ca-hoc', 'TimeStudyController@index');
+        Route::post('xoa-ca-hoc/{id}', 'TimeStudyController@destroy');
         Route::post('tao-ca-hoc', 'TimeStudyController@store');
         Route::post('update-ca-hoc/{id}', 'TimeStudyController@update');
 
