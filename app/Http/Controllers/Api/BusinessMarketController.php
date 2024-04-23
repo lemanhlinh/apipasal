@@ -15,7 +15,7 @@ class BusinessMarketController extends Controller
      */
     public function index()
     {
-        $markets = BusinessMarket::with(['campuses','volume','facebook','history','cities','districts'])->orderBy('id', 'DESC')->get();
+        $markets = BusinessMarket::with(['campuses','volume','facebook','history','cities','districts'])->orderBy('id', 'DESC')->paginate(15);
         return $markets;
     }
 
