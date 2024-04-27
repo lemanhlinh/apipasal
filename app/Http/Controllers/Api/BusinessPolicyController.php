@@ -27,6 +27,7 @@ class BusinessPolicyController extends Controller
     public function create()
     {
         //
+
     }
 
     /**

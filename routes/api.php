@@ -114,6 +114,7 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('chi-tiet-chinh-sach/{id}', 'BusinessPolicyController@edit');
         Route::post('tao-chinh-sach', 'BusinessPolicyController@store');
         Route::post('update-chinh-sach/{id}', 'BusinessPolicyController@update');
+
     });
 
 });
