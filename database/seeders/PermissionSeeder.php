@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Illuminate\Database\Seeder;
+use App\Models\User;
 
 class PermissionSeeder extends Seeder
 {
@@ -21,17 +22,17 @@ class PermissionSeeder extends Seeder
             Permission::updateOrCreate($permission);
         }
 
-        $allPermissionNames = Database\Permission::pluck('name')->toArray();
+        $allPermissionNames = Permission::pluck('name')->toArray();
 
-        $roleAdmin = Database\Role::updateOrCreate([
+        $roleAdmin = Role::updateOrCreate([
             'name' => 'admin',
             'display_name' => 'Admin',
-            'guard_name' => 'web',
+            'guard_name' => 'api',
         ]);
 
         $roleAdmin->givePermissionTo($allPermissionNames);
 
-        $user = Database\User::find(1);
+        $user = User::find(1);
 
         if ($user) {
             $user->assignRole($roleAdmin);

@@ -241,4 +241,18 @@ class DepartmentController extends Controller
     {
         //
     }
+
+    /**
+     * @param $id
+     * @return array
+     */
+    public function changeActive($id)
+    {
+        $campuses = Department::findOrFail($id);
+        $campuses->update(['active' => !$campuses->active]);
+        return [
+            'status' => true,
+            'message' => trans('message.change_active_article_success')
+        ];
+    }
 }

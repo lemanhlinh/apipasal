@@ -132,8 +132,14 @@ class TimeStudyController extends Controller
      * @param  \App\Models\TimeStudy  $timeStudy
      * @return \Illuminate\Http\Response
      */
-    public function destroy(TimeStudy $timeStudy)
+    public function destroy($id)
     {
-        //
+        $data = TimeStudy::findOrFail($id);
+        $data->delete($id);
+
+        return [
+            'status' => true,
+            'message' => trans('message.delete_page_success')
+        ];
     }
 }

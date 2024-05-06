@@ -194,4 +194,18 @@ class UserController extends Controller
     {
         //
     }
+
+    /**
+     * @param $id
+     * @return array
+     */
+    public function changeActive($id)
+    {
+        $user = User::findOrFail($id);
+        $user->update(['active' => !$user->active]);
+        return [
+            'status' => true,
+            'message' => trans('message.change_active_article_success')
+        ];
+    }
 }

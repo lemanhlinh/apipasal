@@ -10,6 +10,7 @@ use App\Models\DayShiftLearn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 
 class DayShiftLearnController extends Controller
 {
@@ -132,8 +133,14 @@ class DayShiftLearnController extends Controller
      * @param  \App\Models\DayShiftLearn  $dayShiftLearn
      * @return \Illuminate\Http\Response
      */
-    public function destroy(DayShiftLearn $dayShiftLearn)
+    public function destroy($id)
     {
-        //
+        $data = DayShiftLearn::findOrFail($id);
+        $data->delete($id);
+
+        return [
+            'status' => true,
+            'message' => trans('message.delete_page_success')
+        ];
     }
 }
