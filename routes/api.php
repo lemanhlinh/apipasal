@@ -115,6 +115,13 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('tao-chinh-sach', 'BusinessPolicyController@store');
         Route::post('update-chinh-sach/{id}', 'BusinessPolicyController@update');
 
+
+        Route::post('khach-hang/them-khach-hang', 'CustomerCustomerController@store');
+        Route::post('khach-hang/danh-sach-khach-hang', 'CustomerCustomerController@index');
+
+        Route::post('danh-sach-quoc-gia', 'CountriesController@index');
+        Route::post('danh-sach-tinh-thanh', 'CitiesController@index');
+        Route::post('danh-sach-quan-huyen', 'DistrictsController@index');
     });
 
 });

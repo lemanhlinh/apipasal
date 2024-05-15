@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\BusinessMarket;
+use App\Models\BusinessMarketFacebook;
+use App\Models\BusinessMarketHistory;
+use App\Models\BusinessMarketVolume;
 use Illuminate\Http\Request;
 
 class BusinessMarketController extends Controller
@@ -37,7 +40,46 @@ class BusinessMarketController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $array = $request->all();
+        $market = new BusinessMarket;
+        $market->title = $array['title'];
+        $market->segment = $array['segment'];
+        $market->link_map = $array['link_map'] ?? '';
+        $market->city_id = $array['city_id'];
+        $market->district_id = $array['district_id'];
+        $market->potential = $array['potential'];
+        $market->note = $array['note'] ?? '';
+        $market->active = 1;
+        $market->campuses_id = json_encode($array['campuses']);
+
+        $market->save();
+
+        if($market->id) {
+            $market_volume = new BusinessMarketVolume;
+            $market_volume->market_id = $market->id;
+            $market_volume->year = $array['year']['value'] ?? 0;
+            $market_volume->more_level = json_encode($array['volume']);
+            $market_volume->total_year = count($array['volume']);
+            $market_volume->save();
+
+            foreach($array['facebook'] as $item) {
+                $market_facebook = new BusinessMarketFacebook;
+                $market_facebook->market_id = $market->id;
+                $market_facebook->title = $item['title'];
+                $market_facebook->link = $item['link'];
+                $market_facebook->save();
+            }
+
+            foreach($array['histories'] as $item) {
+                $market_history = new BusinessMarketHistory;
+                $market_history->market_id = $market->id;
+                $market_history->time_action = $item['time_action']['value'];
+                $market_history->content = $item['content'];
+                $market_history->save();
+            }
+        }
+        return response()->json($array['facebook']);
+
     }
 
     /**
