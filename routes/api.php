@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\BusinessMarketController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -100,10 +101,12 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('tao-doi-tac', 'BusinessPartnerController@store');
         Route::post('update-doi-tac/{id}', 'BusinessPartnerController@update');
 
-        Route::post('thi-truong', 'BusinessMarketController@index');
-        Route::post('chi-tiet-thi-truong/{id}', 'BusinessMarketController@edit');
-        Route::post('tao-thi-truong', 'BusinessMarketController@store');
-        Route::post('update-thi-truong/{id}', 'BusinessMarketController@update');
+        Route::post('thi-truong', [BusinessMarketController::class, 'index']);
+        Route::post('thi-truong/chi-tiet/{id}', [BusinessMarketController::class, 'edit']);
+        Route::post('tao-thi-truong', [BusinessMarketController::class, 'store']);
+        Route::post('group-facebook', [BusinessMarketController::class, 'group_facebook']);
+        Route::post('history-market', [BusinessMarketController::class, 'history_market']);
+        Route::post('thi-truong/cap-nhat/{id}', [BusinessMarketController::class, 'update']);
 
         Route::post('chi-tieu', 'BusinessSpendingController@index');
         Route::post('chi-tiet-chi-tieu/{id}', 'BusinessSpendingController@edit');

@@ -7,6 +7,7 @@ use App\Models\BusinessMarket;
 use App\Models\BusinessMarketFacebook;
 use App\Models\BusinessMarketHistory;
 use App\Models\BusinessMarketVolume;
+use App\Models\Campuses;
 use Illuminate\Http\Request;
 
 class BusinessMarketController extends Controller
@@ -19,6 +20,13 @@ class BusinessMarketController extends Controller
     public function index()
     {
         $markets = BusinessMarket::with(['campuses','volume','facebook','history','cities','districts'])->orderBy('id', 'DESC')->paginate(15);
+        foreach($markets as $item) {
+            $campuses = json_decode($item->campuses_id);
+            foreach($campuses as $campus) {
+                $temp[] = Campuses::where('code', $campus)->first()->title;
+            }
+            $item->list_campus = implode(', ',$temp) ;
+        }
         return $markets;
     }
 
@@ -51,6 +59,7 @@ class BusinessMarketController extends Controller
         $market->note = $array['note'] ?? '';
         $market->active = 1;
         $market->campuses_id = json_encode($array['campuses']);
+        $market->total_student = $array['total_student'];
 
         $market->save();
 
@@ -60,6 +69,7 @@ class BusinessMarketController extends Controller
             $market_volume->year = $array['year']['value'] ?? 0;
             $market_volume->more_level = json_encode($array['volume']);
             $market_volume->total_year = count($array['volume']);
+
             $market_volume->save();
 
             foreach($array['facebook'] as $item) {
@@ -73,13 +83,25 @@ class BusinessMarketController extends Controller
             foreach($array['histories'] as $item) {
                 $market_history = new BusinessMarketHistory;
                 $market_history->market_id = $market->id;
-                $market_history->time_action = $item['time_action']['value'];
+                $market_history->time_action = $item['time_action']['value'] ?? 0;
                 $market_history->content = $item['content'];
                 $market_history->save();
             }
         }
         return response()->json($array['facebook']);
 
+    }
+
+    function group_facebook(Request $request) {
+        $market_id = $request->input('market_id');
+        $facebook = BusinessMarketFacebook::where('market_id', $market_id)->get();
+        return response()->json($facebook);
+    }
+
+    function history_market(Request $request) {
+        $market_id = $request->input('market_id');
+        $histories = BusinessMarketHistory::where('market_id', $market_id)->get();
+        return response()->json($histories);
     }
 
     /**
