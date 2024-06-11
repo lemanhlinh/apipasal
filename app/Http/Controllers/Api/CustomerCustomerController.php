@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomerCustomer;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 class CustomerCustomerController extends Controller
 {
@@ -20,7 +20,20 @@ class CustomerCustomerController extends Controller
      */
     public function index()
     {
-        return CustomerCustomer::orderBy('updated_at', 'DESC')->get();
+        return CustomerCustomer::orderBy('id', 'DESC')
+        ->with([
+            'management' => function ($query) {
+                $query->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
+                    $query2->select('id', 'title')->with(['campuses' => function($query3){
+                        $query3->select('campuses.id', 'campuses.code');
+                    }]);
+                }]);
+            },
+            'source_info' => function ($query) {
+                $query->select('id', 'title', 'code');
+            }
+        ])
+        ->get();
     }
 
     /**
@@ -48,41 +61,41 @@ class CustomerCustomerController extends Controller
             switch ($request->segment) {
                 case 1:
                     $segmentDetail = [
-                        'children' => $request->segmentInfo->children, 
+                        'children' => $request->segmentInfo['children'], 
                     ];
                     break;
                 case 2:
                     $segmentDetail = [
-                        'children' => $request->segmentInfo->children, 
+                        'children' => $request->segmentInfo['children'], 
                     ];
                     break;
                 case 3:
                     $segmentDetail = [
-                        'academic_year' => $request->segmentInfo->academic_year,
-                        'district' => $request->segmentInfo->district,
-                        'district_name' => $request->segmentInfo->district_name,
-                        'school' => $request->segmentInfo->school,
-                        'school_name' => $request->segmentInfo->school_name,
-                        'class' => $request->segmentInfo->class,
-                        'parent' => $request->segmentInfo->parent,
+                        'academic_year' => $request->segmentInfo['academic_year'],
+                        'district' => $request->segmentInfo['district'],
+                        'district_name' => $request->segmentInfo['district_name'],
+                        'school' => $request->segmentInfo['school'],
+                        'school_name' => $request->segmentInfo['school_name'],
+                        'class' => $request->segmentInfo['class'],
+                        'parent' => $request->segmentInfo['parent'],
                     ];
                     break;
                 case 4:
                     $segmentDetail = [
-                        'academic_year' => $request->segmentInfo->academic_year,
-                        'district' => $request->segmentInfo->district,
-                        'district_name' => $request->segmentInfo->district_name,
-                        'school' => $request->segmentInfo->school,
-                        'school_name' => $request->segmentInfo->school_name,
-                        'major' => $request->segmentInfo->major,
-                        'major_name' => $request->segmentInfo->major_name,
+                        'academic_year' => $request->segmentInfo['academic_year'],
+                        'district' => $request->segmentInfo['district'],
+                        'district_name' => $request->segmentInfo['district_name'],
+                        'school' => $request->segmentInfo['school'],
+                        'school_name' => $request->segmentInfo['school_name'],
+                        'major' => $request->segmentInfo['major'],
+                        'major_name' => $request->segmentInfo['major_name'],
                     ];
                     break;
                 case 5:
                     $segmentDetail = [
-                        'company' => $request->segmentInfo->company,
-                        'position' => $request->segmentInfo->position,
-                        'work' => $request->segmentInfo->work,
+                        'company' => $request->segmentInfo['company'],
+                        'position' => $request->segmentInfo['position'],
+                        'work' => $request->segmentInfo['work'],
                     ];
                     break;
             }
@@ -105,18 +118,13 @@ class CustomerCustomerController extends Controller
                 'consulting_detail' => json_encode($request->consulting_detail),
                 'consulting' => $request->consulting,
                 'potential' => $request->potential,
-                'date_registration' => $request->date_registration,
+                'date_registration' => Carbon::createFromFormat('dmY', $request->date_registration)->format('Y-m-d H:i:s'),
                 'product_category' => $request->product_category,
                 'product' => $request->product,
+                'contract' => $request->contract ? 1 : 0,
                 'manage_id' => $user->id,
                 'active' => 1,
             ];
-
-            return response()->json(array(
-                'error' => false,
-                'data' => $request->segmentInfo,
-                'result' => 'Đã thêm mới khách hàng!',
-            ));
 
             $customer = CustomerCustomer::create($data);
 
