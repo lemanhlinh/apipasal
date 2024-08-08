@@ -20,6 +20,7 @@ class BusinessMarketController extends Controller
     public function index()
     {
         $markets = BusinessMarket::with(['campuses','volume','facebook','history','cities','districts'])->orderBy('id', 'DESC')->paginate(15);
+        
         foreach($markets as $item) {
             $campuses = json_decode($item->campuses_id);
             foreach($campuses as $campus) {
@@ -27,7 +28,8 @@ class BusinessMarketController extends Controller
             }
             $item->list_campus = implode(', ',$temp) ;
         }
-        return $markets;
+        return response()->json($markets);
+
     }
 
     /**
