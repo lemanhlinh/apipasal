@@ -21,6 +21,9 @@ class BusinessMarketController extends Controller
     {
         $markets = BusinessMarket::with(['campuses','volume','facebook','history','cities','districts'])->orderBy('id', 'DESC')->paginate(15);
         
+        if(!$markets) {
+            return response()->json(['message' => 'Data not found'], 404);
+        }
         foreach($markets as $item) {
             $campuses = json_decode($item->campuses_id);
             foreach($campuses as $campus) {
