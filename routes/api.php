@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
+use App\Http\Controllers\Api\CustomerCustomerController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -121,6 +123,11 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
 
         Route::post('khach-hang/them-khach-hang', 'CustomerCustomerController@store');
         Route::post('khach-hang/danh-sach-khach-hang', 'CustomerCustomerController@index');
+        Route::post('khach-hang/cap-nhat-khach-hang', 'CustomerCustomerController@update');
+
+        Route::post('khach-hang/danh-sach-demo-trai-nghiem', 'CustomerDemoController@index');
+        Route::post('khach-hang/them-demo-trai-nghiem', 'CustomerDemoController@store');
+        Route::post('khach-hang/cap-nhat-demo-trai-nghiem', 'CustomerDemoController@update');
 
         Route::post('danh-sach-quoc-gia', 'CountriesController@index');
         Route::post('danh-sach-tinh-thanh', 'CitiesController@index');

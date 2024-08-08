@@ -20,7 +20,10 @@ class CustomerCustomerController extends Controller
      */
     public function index()
     {
-        return CustomerCustomer::orderBy('id', 'DESC')
+        $user = Auth::user();
+
+        $customer = CustomerCustomer::orderBy('id', 'DESC')
+        ->where('manage_id', $user->id)
         ->with([
             'management' => function ($query) {
                 $query->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
@@ -34,6 +37,12 @@ class CustomerCustomerController extends Controller
             }
         ])
         ->get();
+
+        foreach ($customer as $item) {
+            $item->consulting_detail =  json_decode($item->consulting_detail);
+        }
+
+        return $customer;
     }
 
     /**
@@ -118,7 +127,7 @@ class CustomerCustomerController extends Controller
                 'consulting_detail' => json_encode($request->consulting_detail),
                 'consulting' => $request->consulting,
                 'potential' => $request->potential,
-                'date_registration' => Carbon::createFromFormat('dmY', $request->date_registration)->format('Y-m-d H:i:s'),
+                'date_registration' => Carbon::createFromFormat('dmY', $request->date_registration)->format('Y-m-d'),
                 'product_category' => $request->product_category,
                 'product' => $request->product,
                 'contract' => $request->contract ? 1 : 0,
@@ -160,76 +169,69 @@ class CustomerCustomerController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\CustomerCustomer  $businessPartner
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        $partner = CustomerCustomer::with(['clue','campuses'])->where('id',$id)->first();
-        return $partner;
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\CustomerCustomer  $businessPartner
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
+        // return response()->json(array(
+        //     'error' => false,
+        //     'message' => 'Cập nhật khách hàng thành công!',
+        //     'data' => $request->all()
+        // ));
+
         DB::beginTransaction();
         try {
-            $title = $request->input('title');
-            $phone = $request->input('phone');
-            $email = $request->input('email');
-            $type = $request->input('type');
-            $type_campuses = $request->input('type_campuses');
-            $segment = $request->input('segment');
-            $info_partner = $request->input('info_partner');
-            $campuses = $request->input('campuses');
-            $partner = CustomerCustomer::findOrFail($id);
-            $partner->update([
-                'title' => $title,
-                'phone' => $phone,
-                'email' => $email,
-                'type' => $type,
-                'type_campuses' => $type_campuses,
-                'segment' => $segment,
-                'info_partner' => $info_partner,
-                'campuses_id' => $campuses?$campuses['id']:null,
-                'active' => 1,
-            ]);
+            $data = [];
 
-            $clues = $request->input('clue');
-            if ($clues){
-                $clueTitles = collect($clues)->pluck('title')->all();
-                $partner->clue()
-                    ->whereNotIn('title', $clueTitles)
-                    ->delete();
-                foreach ($clues as $clue){
-                    if ( $clue['title']){
-                        $partner->clue()->create([
-                            'title' => $clue['title'],
-                            'phone' => $clue['phone'],
-                            'email' => $clue['email'],
-                            'position' => $clue['position'],
-                            'birthday' => Carbon::parse($clue['birthday'])->toDateString(),
-                            'active' => 1,
-                        ]);
-                    }
-                }
+            if ($request->issue) {
+                $data['issue'] = $request->issue;
             }
 
+            if ($request->consulting) {
+                $data['consulting'] = $request->consulting;
+            }
+
+            if ($request->potential) {
+                $data['potential'] = $request->potential;
+            }
+
+            if ($request->consulting_detail) {
+                $data['consulting_detail'] = json_encode($request->consulting_detail);
+            }
+
+            if ($request->consulting_date) {
+                $data['consulting_date'] = Carbon::createFromFormat('dmY', $request->consulting_date)->format('Y-m-d');
+            }
+
+            if (isset($request->contract)) {
+                $data['contract'] = $request->contract ? 1 : 0;
+            }
+
+            if ($request->product) {
+                $data['product'] = $request->product;
+            }
+
+            if ($request->product_category) {
+                $data['product_category'] = $request->product_category;
+            }
+
+            if ($request->date_registration) {
+                $data['date_registration'] = Carbon::createFromFormat('d/m/Y', $request->date_registration)->format('Y-m-d');
+            }
+
+            $customer = CustomerCustomer::findOrFail($request->id);
+
+            $customer->update($data); 
 
             DB::commit();
             return response()->json(array(
                 'error' => false,
-                'result' => 'Cập nhật thành công đối tác',
+                'message' => 'Cập nhật khách hàng thành công!',
+                'data' => $data
             ));
-            Session::flash('success', 'Cập nhật thành công đối tác');
         } catch (\Exception $exception) {
             Log::info([
                 'message' => $exception->getMessage(),
@@ -238,7 +240,7 @@ class CustomerCustomerController extends Controller
             ]);
             return response()->json(array(
                 'error' => true,
-                'result' => 'Chưa cập nhật được đối tác',
+                'message' => 'Cập nhật khách hàng không thành công!',
             ));
         }
     }
@@ -252,5 +254,5 @@ class CustomerCustomerController extends Controller
     public function destroy(CustomerCustomer $businessPartner)
     {
         //
-    }
+    } 
 }
