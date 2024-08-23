@@ -19,20 +19,57 @@ class BusinessMarketController extends Controller
      */
     public function index()
     {
-        $markets = BusinessMarket::with(['campuses','volume','facebook','history','cities','districts'])->orderBy('id', 'DESC')->paginate(15);
-        
-        if(!$markets) {
+        $markets = BusinessMarket::with(['campuses', 'volume', 'facebook', 'history', 'cities', 'districts'])->orderBy('id', 'DESC')->paginate(15);
+
+        if (!$markets) {
             return response()->json(['message' => 'Data not found'], 404);
         }
-        foreach($markets as $item) {
-            $campuses = json_decode($item->campuses_id);
-            foreach($campuses as $campus) {
-                $temp[] = Campuses::where('code', $campus)->first()->title;
-            }
-            $item->list_campus = implode(', ',$temp) ;
-        }
-        return response()->json($markets);
 
+        $middleSchoolCount = 0;
+        $primarySchoolCount = 0;
+        $highSchoolCount = 0;
+        $collegeCount = 0;
+        $workingCount = 0;
+        foreach ($markets as $item) {
+            $campuses = json_decode($item->campuses_id);
+            $temp = [];
+        
+            foreach ($campuses as $campus) {
+                $campusTitle = Campuses::where('code', $campus)->first()->title ?? 'Unknown';
+                $temp[] = $campusTitle;
+            }
+        
+            switch ($item->segment) {
+                case 1:
+                    $primarySchoolCount++;
+                    break;
+                case 2:
+                    $middleSchoolCount++;
+                    break;
+                case 3:
+                    $highSchoolCount++;
+                    break;
+                case 4:
+                    $collegeCount++;
+                    break;
+                case 5:
+                    $workingCount++;
+                    break;
+            }
+        
+            $item->list_campus = implode(', ', $temp);
+        }
+
+        return response()->json([
+            'data' => $markets,
+            'statistic' => [
+                'middleSchoolCount' => $middleSchoolCount,
+                'primarySchoolCount' => $primarySchoolCount,
+                'highSchoolCount' => $highSchoolCount,
+                'collegeCount' => $collegeCount,
+                'workingCount' => $workingCount,
+            ]
+        ]);
     }
 
     /**
@@ -68,7 +105,7 @@ class BusinessMarketController extends Controller
 
         $market->save();
 
-        if($market->id) {
+        if ($market->id) {
             $market_volume = new BusinessMarketVolume;
             $market_volume->market_id = $market->id;
             $market_volume->year = $array['year']['value'] ?? 0;
@@ -77,7 +114,7 @@ class BusinessMarketController extends Controller
 
             $market_volume->save();
 
-            foreach($array['facebook'] as $item) {
+            foreach ($array['facebook'] as $item) {
                 $market_facebook = new BusinessMarketFacebook;
                 $market_facebook->market_id = $market->id;
                 $market_facebook->title = $item['title'];
@@ -85,7 +122,7 @@ class BusinessMarketController extends Controller
                 $market_facebook->save();
             }
 
-            foreach($array['histories'] as $item) {
+            foreach ($array['histories'] as $item) {
                 $market_history = new BusinessMarketHistory;
                 $market_history->market_id = $market->id;
                 $market_history->time_action = $item['time_action']['value'] ?? 0;
@@ -94,16 +131,17 @@ class BusinessMarketController extends Controller
             }
         }
         return response()->json($array['facebook']);
-
     }
 
-    function group_facebook(Request $request) {
+    function group_facebook(Request $request)
+    {
         $market_id = $request->input('market_id');
         $facebook = BusinessMarketFacebook::where('market_id', $market_id)->get();
         return response()->json($facebook);
     }
 
-    function history_market(Request $request) {
+    function history_market(Request $request)
+    {
         $market_id = $request->input('market_id');
         $histories = BusinessMarketHistory::where('market_id', $market_id)->get();
         return response()->json($histories);
@@ -128,7 +166,7 @@ class BusinessMarketController extends Controller
      */
     public function edit($id)
     {
-        $market = BusinessMarket::with(['campuses','volume','facebook','history','cities','districts'])->where('id',$id)->first();
+        $market = BusinessMarket::with(['campuses', 'volume', 'facebook', 'history', 'cities', 'districts'])->where('id', $id)->first();
         return $market;
     }
 
