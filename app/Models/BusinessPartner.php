@@ -11,7 +11,16 @@ class BusinessPartner extends Model
     protected $table = 'business_partners';
     protected $guarded = ['id'];
 
-
+    protected $fillable = [
+        'title',
+        'phone',
+        'email',
+        'type',
+        'type_campuses',
+        'segment',
+        'info_partner',
+        'campuses_id',
+    ];
     public function clue()
     {
         return $this->hasMany(BusinessPartnerClue::class, 'partner_id', 'id');

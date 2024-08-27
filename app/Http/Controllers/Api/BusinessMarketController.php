@@ -9,6 +9,8 @@ use App\Models\BusinessMarketHistory;
 use App\Models\BusinessMarketVolume;
 use App\Models\Campuses;
 use Illuminate\Http\Request;
+use App\Models\BusinessMarketStatistical;
+use Illuminate\Support\Facades\Bus;
 
 class BusinessMarketController extends Controller
 {
@@ -19,8 +21,32 @@ class BusinessMarketController extends Controller
      */
     public function index()
     {
-        $markets = BusinessMarket::with(['campuses', 'volume', 'facebook', 'history', 'cities', 'districts'])->orderBy('id', 'DESC')->paginate(15);
+        $city_id = request('city_id');
+        $district_id = request('district_id');
+        $campuses_id = request('campuses_id');
+        $segment = request('segment');
 
+        $query = BusinessMarket::with(['campuses', 'volume', 'facebook', 'history', 'cities', 'districts'])->orderBy('id', 'DESC');
+
+        if($city_id) {
+            $query->where('city_id', $city_id);
+        }
+        if($district_id) {
+            $query->where('district_id', $district_id);
+        }
+        if (is_array($campuses_id) && !empty($campuses_id)) {
+            $query->where(function($query) use ($campuses_id) {
+                foreach ($campuses_id as $id) {
+                    $query->orWhere('campuses_id', 'like', '%'.$id.'%');
+                }
+            });
+        }
+
+        if($segment) {
+            $query->where('segment', $segment);
+        }
+
+        $markets = $query->paginate(15);
         if (!$markets) {
             return response()->json(['message' => 'Data not found'], 404);
         }
@@ -30,15 +56,16 @@ class BusinessMarketController extends Controller
         $highSchoolCount = 0;
         $collegeCount = 0;
         $workingCount = 0;
+
         foreach ($markets as $item) {
             $campuses = json_decode($item->campuses_id);
             $temp = [];
-        
+
             foreach ($campuses as $campus) {
                 $campusTitle = Campuses::where('code', $campus)->first()->title ?? 'Unknown';
                 $temp[] = $campusTitle;
             }
-        
+
             switch ($item->segment) {
                 case 1:
                     $primarySchoolCount++;
@@ -56,7 +83,8 @@ class BusinessMarketController extends Controller
                     $workingCount++;
                     break;
             }
-        
+
+
             $item->list_campus = implode(', ', $temp);
         }
 
@@ -69,7 +97,7 @@ class BusinessMarketController extends Controller
                 'collegeCount' => $collegeCount,
                 'workingCount' => $workingCount,
             ]
-        ]);
+        ], 200);
     }
 
     /**
@@ -88,6 +116,75 @@ class BusinessMarketController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+
+    public function saveStatistical()
+    {
+        $marketStatistical = BusinessMarketStatistical::where('year', '=', request('year'))
+        ->where('city_id', '=', request('city_id'))
+        ->where('district_id', '=', request('district_id'))
+        ->firstOrCreate([]);
+
+        $validatedData = request()->validate([
+            'middleSchoolCount' => 'nullable|integer',
+            'primarySchoolCount' => 'nullable|integer',
+            'highSchoolCount' => 'nullable|integer',
+            'collegeCount' => 'nullable|integer',
+            'workingCount' => 'nullable|integer',
+            'totalStudentPrimarySchool' => 'nullable|integer',
+            'totalStudentMiddleSchool' => 'nullable|integer',
+            'totalStudentHighSchool' => 'nullable|integer',
+            'totalStudentCollege' => 'nullable|integer',
+            'totalStudentWorking' => 'nullable|integer',
+            'totalDataPrimarySchoolCount' => 'nullable|integer',
+            'totalDataMiddleSchoolCount' => 'nullable|integer',
+            'totalDataHighSchoolCount' => 'nullable|integer',
+            'totalDataCollegeCount' => 'nullable|integer',
+            'totalDataWorkingCount' => 'nullable|integer',
+            'totalStudentPasalPrimarySchool' => 'nullable|integer',
+            'totalStudentPasalMiddleSchool' => 'nullable|integer',
+            'totalStudentPasalHighSchool' => 'nullable|integer',
+            'totalStudentPasalCollegeSchool' => 'nullable|integer',
+            'totalStudentPasalWorkingSchool' => 'nullable|integer',
+            'year' => 'nullable|integer',
+            'city_id' => 'nullable|integer',
+            'district_id' => 'nullable|integer',
+        ]);
+
+        $marketStatistical->middleSchoolCount += $validatedData['middleSchoolCount'] ?? 0;
+        $marketStatistical->primarySchoolCount += $validatedData['primarySchoolCount'] ?? 0;
+        $marketStatistical->highSchoolCount += $validatedData['highSchoolCount'] ?? 0;
+        $marketStatistical->collegeCount += $validatedData['collegeCount'] ?? 0;
+        $marketStatistical->workingCount += $validatedData['workingCount'] ?? 0;
+
+        $marketStatistical->totalStudentPrimarySchool += $validatedData['totalStudentPrimarySchool'] ?? 0;
+        $marketStatistical->totalStudentMiddleSchool += $validatedData['totalStudentMiddleSchool'] ?? 0;
+        $marketStatistical->totalStudentHighSchool += $validatedData['totalStudentHighSchool'] ?? 0;
+        $marketStatistical->totalStudentCollege += $validatedData['totalStudentCollege'] ?? 0;
+        $marketStatistical->totalStudentWorking += $validatedData['totalStudentWorking'] ?? 0;
+
+        $marketStatistical->totalDataPrimarySchoolCount += $validatedData['totalDataPrimarySchoolCount'] ?? 0;
+        $marketStatistical->totalDataMiddleSchoolCount += $validatedData['totalDataMiddleSchoolCount'] ?? 0;
+        $marketStatistical->totalDataHighSchoolCount += $validatedData['totalDataHighSchoolCount'] ?? 0;
+        $marketStatistical->totalDataCollegeCount += $validatedData['totalDataCollegeCount'] ?? 0;
+        $marketStatistical->totalDataWorkingCount += $validatedData['totalDataWorkingCount'] ?? 0;
+
+        $marketStatistical->totalStudentPasalPrimarySchool += $validatedData['totalStudentPasalPrimarySchool'] ?? 0;
+        $marketStatistical->totalStudentPasalMiddleSchool += $validatedData['totalStudentPasalMiddleSchool'] ?? 0;
+        $marketStatistical->totalStudentPasalHighSchool += $validatedData['totalStudentPasalHighSchool'] ?? 0;
+        $marketStatistical->totalStudentPasalCollegeSchool += $validatedData['totalStudentPasalCollegeSchool'] ?? 0;
+        $marketStatistical->totalStudentPasalWorkingSchool += $validatedData['totalStudentPasalWorkingSchool'] ?? 0;
+
+        $marketStatistical->year = $validatedData['year'] ?? 0;
+        $marketStatistical->city_id = $validatedData['city_id'] ?? 0;
+        $marketStatistical->district_id = $validatedData['district_id'] ?? 0;
+
+        $marketStatistical->save();
+        return response()->json([
+            'message' => 'Thống kê dữ liệu thị trường thành công!',
+            'data' => $marketStatistical
+        ]);
+    }
+
     public function store(Request $request)
     {
         $array = $request->all();
