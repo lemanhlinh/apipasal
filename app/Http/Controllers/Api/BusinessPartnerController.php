@@ -42,14 +42,19 @@ class BusinessPartnerController extends Controller
     {
         DB::beginTransaction();
         try {
-            $title = $request->input('title');
-            $phone = $request->input('phone');
-            $email = $request->input('email');
-            $type = $request->input('type');
-            $type_campuses = $request->input('type_campuses');
-            $segment = $request->input('segment');
-            $info_partner = $request->input('info_partner');
-            $campuses = $request->input('campuses');
+            if (!$request->has('title')) {
+                return response()->json(['error' => 'Title is required'], 400);
+            }
+            
+            $title = $request->title;
+            $phone = $request->phone;
+            $email = $request->email;
+            $type = $request->type;
+            $type_campuses = $request->type_campuses;
+            $segment = $request->segment;
+            $info_partner = $request->info_partner;
+            $campuses = $request->campuses;
+
             $partner = BusinessPartner::create([
                 'title' => $title,
                 'phone' => $phone,
@@ -58,9 +63,10 @@ class BusinessPartnerController extends Controller
                 'type_campuses' => $type_campuses,
                 'segment' => $segment,
                 'info_partner' => $info_partner,
-                'campuses_id' => $campuses?$campuses['id']:null,
+                'campuses_id' => $campuses,
                 'active' => 1,
             ]);
+
             $clues = $request->input('clue');
             if ($clues){
                 foreach ($clues as $clue){
