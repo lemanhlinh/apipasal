@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomerCustomer;
@@ -10,8 +10,20 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 
-class CustomerCustomerController extends Controller
+use App\Services\Business\BusinessPartnerService;
+use App\Services\Customer\CustomerService;
+
+class CustomerController extends Controller
 {
+    protected $businessPartnerService;
+    protected $customerService;
+
+    public function __construct(BusinessPartnerService $businessPartnerService, CustomerService $customerService)
+    {
+        $this->businessPartnerService = $businessPartnerService;
+        $this->customerService = $customerService;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -22,20 +34,20 @@ class CustomerCustomerController extends Controller
         $user = Auth::user();
 
         $customer = CustomerCustomer::orderBy('id', 'DESC')
-        ->where('manage_id', $user->id)
-        ->with([
-            'management' => function ($query) {
-                $query->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
-                    $query2->select('id', 'title')->with(['campuses' => function($query3){
-                        $query3->select('campuses.id', 'campuses.code');
+            ->where('manage_id', $user->id)
+            ->with([
+                'management' => function ($query) {
+                    $query->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
+                        $query2->select('id', 'title')->with(['campuses' => function ($query3) {
+                            $query3->select('campuses.id', 'campuses.code');
+                        }]);
                     }]);
-                }]);
-            },
-            'source_info' => function ($query) {
-                $query->select('id', 'title', 'code');
-            }
-        ])
-        ->get();
+                },
+                'source_info' => function ($query) {
+                    $query->select('id', 'title', 'code');
+                }
+            ])
+            ->get();
 
         foreach ($customer as $item) {
             $item->consulting_detail =  json_decode($item->consulting_detail);
@@ -64,77 +76,8 @@ class CustomerCustomerController extends Controller
     {
         DB::beginTransaction();
         try {
-            $user = Auth::user();
-
-            switch ($request->segment) {
-                case 1:
-                    $segmentDetail = [
-                        'children' => $request->segmentInfo['children'], 
-                    ];
-                    break;
-                case 2:
-                    $segmentDetail = [
-                        'children' => $request->segmentInfo['children'], 
-                    ];
-                    break;
-                case 3:
-                    $segmentDetail = [
-                        'academic_year' => $request->segmentInfo['academic_year'],
-                        'district' => $request->segmentInfo['district'],
-                        'district_name' => $request->segmentInfo['district_name'],
-                        'school' => $request->segmentInfo['school'],
-                        'school_name' => $request->segmentInfo['school_name'],
-                        'class' => $request->segmentInfo['class'],
-                        'parent' => $request->segmentInfo['parent'],
-                    ];
-                    break;
-                case 4:
-                    $segmentDetail = [
-                        'academic_year' => $request->segmentInfo['academic_year'],
-                        'district' => $request->segmentInfo['district'],
-                        'district_name' => $request->segmentInfo['district_name'],
-                        'school' => $request->segmentInfo['school'],
-                        'school_name' => $request->segmentInfo['school_name'],
-                        'major' => $request->segmentInfo['major'],
-                        'major_name' => $request->segmentInfo['major_name'],
-                    ];
-                    break;
-                case 5:
-                    $segmentDetail = [
-                        'company' => $request->segmentInfo['company'],
-                        'position' => $request->segmentInfo['position'],
-                        'work' => $request->segmentInfo['work'],
-                    ];
-                    break;
-            }
-
-            $data = [
-                'title' => $request->title,
-                'phone' => $request->phone,
-                'email' => $request->email,
-                'sex' => $request->sex,
-                'year_birth' => $request->year_birth,
-                'country' => $request->country,
-                'city' => $request->city,
-                'district' => $request->district,
-                'address' => $request->address,
-                'segment' => $request->segment,
-                'segment_detail' => json_encode($segmentDetail),
-                'source' => $request->source,
-                'source_detail' => $request->source_detail,
-                'issue' => $request->issue,
-                'consulting_detail' => json_encode($request->consulting_detail),
-                'consulting' => $request->consulting,
-                'potential' => $request->potential,
-                'date_registration' => Carbon::createFromFormat('dmY', $request->date_registration)->format('Y-m-d'),
-                'product_category' => $request->product_category,
-                'product' => $request->product,
-                'contract' => $request->contract ? 1 : 0,
-                'manage_id' => $user->id,
-                'active' => 1,
-            ];
-
-            $customer = CustomerCustomer::create($data);
+            
+            $customer = $this->customerService->store($request);
 
             DB::commit();
             return response()->json(array(
@@ -223,7 +166,7 @@ class CustomerCustomerController extends Controller
 
             $customer = CustomerCustomer::findOrFail($request->id);
 
-            $customer->update($data); 
+            $customer->update($data);
 
             DB::commit();
             return response()->json(array(
@@ -247,11 +190,57 @@ class CustomerCustomerController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\CustomerCustomer  $businessPartner
+     * @param  \App\Models\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(CustomerCustomer $businessPartner)
+    public function destroy(Request $request)
     {
-        //
-    } 
+        $user = Auth::user();
+        $record = CustomerCustomer::where('id', $request->id)
+            ->where('manage_id', $user->id)
+            ->first();
+
+        if (!$record) {
+            return response()->json(array(
+                'error' => false,
+                'message' => 'Không tìm thấy khách hàng hoặc bạn không có quyền xóa khách hàng này!',
+                'data' => []
+            ));
+        }
+
+        $handle = $this->handleTransaction(function () use ($request) {
+            return $this->customerService->destroy($request);
+        }, 'Xóa khách hàng thành công!', 'Xóa khách hàng không thành công!');
+
+        return $handle;
+    }
+
+    private function handleTransaction(callable $callback, $successMessage = 'Thao tác thành công!', $errorMessage = 'Thao tác không thành công!')
+    {
+        DB::beginTransaction();
+        try {
+            $result = $callback();
+
+            DB::commit();
+
+            return response()->json(array(
+                'error' => false,
+                'message' => $successMessage,
+                'data' => $result
+            ));
+        } catch (\Exception $exception) {
+            Log::info([
+                'message' => $exception->getMessage(),
+                'line' => __LINE__,
+                'method' => __METHOD__
+            ]);
+
+            DB::rollBack();
+
+            return response()->json(array(
+                'error' => true,
+                'message' => $errorMessage,
+            ));
+        }
+    }
 }
