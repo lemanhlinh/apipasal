@@ -188,6 +188,7 @@ class BusinessMarketController extends Controller
     public function store(Request $request)
     {
         $array = $request->all();
+    
         $market = new BusinessMarket;
         $market->title = $array['title'];
         $market->segment = $array['segment'];
@@ -199,18 +200,19 @@ class BusinessMarketController extends Controller
         $market->active = 1;
         $market->campuses_id = json_encode($array['campuses']);
         $market->total_student = $array['total_student'];
-
         $market->save();
-
+    
         if ($market->id) {
-            $market_volume = new BusinessMarketVolume;
-            $market_volume->market_id = $market->id;
-            $market_volume->year = $array['year']['value'] ?? 0;
-            $market_volume->more_level = json_encode($array['volume']);
-            $market_volume->total_year = count($array['volume']);
-
-            $market_volume->save();
-
+    
+            foreach ($array['volumes'] as $volume) {
+                $market_volume = new BusinessMarketVolume;
+                $market_volume->market_id = $market->id;
+                $market_volume->year = $volume['year']['value'] ?? 0;
+                $market_volume->more_level = json_encode($volume['items']);
+                $market_volume->total_year = count($volume['items']);
+                $market_volume->save();
+            }
+    
             foreach ($array['facebook'] as $item) {
                 $market_facebook = new BusinessMarketFacebook;
                 $market_facebook->market_id = $market->id;
@@ -218,7 +220,7 @@ class BusinessMarketController extends Controller
                 $market_facebook->link = $item['link'];
                 $market_facebook->save();
             }
-
+    
             foreach ($array['histories'] as $item) {
                 $market_history = new BusinessMarketHistory;
                 $market_history->market_id = $market->id;
@@ -226,9 +228,13 @@ class BusinessMarketController extends Controller
                 $market_history->content = $item['content'];
                 $market_history->save();
             }
+    
+            return response()->json(['success' => true, 'message' => 'Market saved successfully' ]);
         }
-        return response()->json($array['facebook']);
+    
+        return response()->json(['success' => false, 'message' => 'Failed to save market'], 500);
     }
+    
 
     function group_facebook(Request $request)
     {
@@ -261,10 +267,68 @@ class BusinessMarketController extends Controller
      * @param  \App\Models\BusinessMarket  $businessMarket
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
-        $market = BusinessMarket::with(['campuses', 'volume', 'facebook', 'history', 'cities', 'districts'])->where('id', $id)->first();
-        return $market;
+        $array = $request->all();
+    
+        $market = BusinessMarket::findOrFail($id);
+        $fields = [
+            'title', 'segment', 'link_map', 'city_id', 
+            'district_id', 'potential', 'note', 'total_student'
+        ];
+    
+        foreach ($fields as $field) {
+            if (!empty($array[$field])) {
+                $market->$field = $array[$field];
+            }
+        }
+        if (!empty($array['campuses'])) {
+            $market->campuses_id = json_encode($array['campuses']);
+        }
+        $market->active = 1;
+
+        $market->save();
+    
+        if ($market->id) {
+    
+            BusinessMarketVolume::where('market_id', $market->id)->delete();
+            foreach ($array['volumes'] as $volume) {
+                $market_volume = new BusinessMarketVolume;
+                $market_volume->market_id = $market->id;
+                $market_volume->year = $volume['year']['value'] ?? 0;
+                $market_volume->more_level = json_encode($volume['items']);
+                $market_volume->total_year = count($volume['items']);
+                $market_volume->save();
+            }
+    
+            BusinessMarketFacebook::where('market_id', $market->id)->delete();
+            if(!empty($array['facebook'])) {
+                foreach ($array['facebook'] as $item) {
+                    $market_facebook = new BusinessMarketFacebook;
+                    $market_facebook->market_id = $market->id;
+                    $market_facebook->title = $item['title'];
+                    $market_facebook->link = $item['link'];
+                    $market_facebook->save();
+                }
+            }
+
+    
+            BusinessMarketHistory::where('market_id', $market->id)->delete();
+            if(!empty($array['histories'])) {
+                foreach ($array['histories'] as $item) {
+                    $market_history = new BusinessMarketHistory;
+                    $market_history->market_id = $market->id;
+                    $market_history->time_action = $item['time_action']['value'] ?? 0;
+                    $market_history->content = $item['content'];
+                    $market_history->save();
+                }
+            }
+
+    
+            return response()->json(['success' => true, 'message' => 'Market updated successfully']);
+        }
+    
+        return response()->json(['success' => false, 'message' => 'Failed to update market'], 500);
     }
 
     /**

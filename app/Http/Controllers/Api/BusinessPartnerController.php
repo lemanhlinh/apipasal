@@ -98,7 +98,7 @@ class BusinessPartnerController extends Controller
             ]);
             return response()->json(array(
                 'error' => true,
-                'result' => 'Chưa thêm được đào tạo',
+                'result' => 'Chưa thêm được đối tác',
             ));
         }
     }
@@ -160,9 +160,9 @@ class BusinessPartnerController extends Controller
 
             $clues = $request->input('clue');
             if ($clues){
-                $clueTitles = collect($clues)->pluck('title')->all();
+                $clueTitles = collect($clues)->pluck('email')->all();
                 $partner->clue()
-                    ->whereNotIn('title', $clueTitles)
+                    ->whereIn('email', $clueTitles)
                     ->delete();
                 foreach ($clues as $clue){
                     if ( $clue['title']){

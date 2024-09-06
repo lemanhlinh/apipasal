@@ -11,6 +11,7 @@ class CustomerCustomer extends Model
     protected $table = 'customer_customer';
     protected $guarded = ['id'];
 
+    
 
     public function clue()
     {

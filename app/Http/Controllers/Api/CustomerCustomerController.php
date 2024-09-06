@@ -66,6 +66,8 @@ class CustomerCustomerController extends Controller
         DB::beginTransaction();
         try {
             $user = Auth::user();
+            $request = (object) $request->all();
+            $segmentDetail = [];
 
             switch ($request->segment) {
                 case 1:
@@ -108,6 +110,7 @@ class CustomerCustomerController extends Controller
                     ];
                     break;
             }
+
 
             $data = [
                 'title' => $request->title,

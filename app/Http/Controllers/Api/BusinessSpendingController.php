@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\BusinessSpending;
+use App\Models\BusinessSpendingDepartment;
 use Illuminate\Http\Request;
 
 class BusinessSpendingController extends Controller
@@ -37,7 +38,31 @@ class BusinessSpendingController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $req = $request->all();
+    
+        foreach ($req as $item) {
+            $businessSpending = new BusinessSpending();
+            $businessSpending->title = $item['title'];
+            $businessSpending->month = $item['month'];
+            $businessSpending->active = $item['active'];
+            $businessSpending->save();
+    
+            foreach ($item['department'] as $department) {
+                $spendingDepartment = new BusinessSpendingDepartment();
+                $spendingDepartment->revenue_expenditure = $department['revenue_expenditure'];
+                $spendingDepartment->student_expenses = $department['student_expenses'];
+                $spendingDepartment->customer_expenses = $department['customer_expenses'];
+                $spendingDepartment->ti_le_chot_expenses = $department['ti_le_chot_expenses'];
+                $spendingDepartment->spending_id = $businessSpending->id;
+                $spendingDepartment->department_id = $department['department_id'];
+                $spendingDepartment->save();
+            }
+        }
+    
+        return response()->json([
+            'error' => false,
+            'message' => 'Business spending records created successfully!'
+        ], 201);
     }
 
     /**
@@ -57,9 +82,23 @@ class BusinessSpendingController extends Controller
      * @param  \App\Models\BusinessSpending  $businessSpending
      * @return \Illuminate\Http\Response
      */
-    public function edit(BusinessSpending $businessSpending)
+    public function edit(Request $request, BusinessSpending $businessSpending)
     {
-        //
+        $id = $request->id;
+
+        $businessSpending = BusinessSpending::find($id);
+        if(!$businessSpending) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Business spending record not found!'
+            ], 404);
+        }
+        $businessSpending->department = BusinessSpendingDepartment::where('spending_id', $id)->get();
+
+        return response()->json([
+            'error' => false,
+            'data' => $businessSpending
+        ], 200);
     }
 
     /**
@@ -69,9 +108,52 @@ class BusinessSpendingController extends Controller
      * @param  \App\Models\BusinessSpending  $businessSpending
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, BusinessSpending $businessSpending)
+    public function update(Request $request, $id)
     {
-        //
+        $req = $request->all();
+    
+        $businessSpending = BusinessSpending::find($id);
+        if ($businessSpending) {
+            foreach ($req as $item) {
+                $businessSpending->title = $item['title'];
+                $businessSpending->month = $item['month'];
+                $businessSpending->active = $item['active'];
+                $businessSpending->save();
+    
+                foreach ($item['department'] as $department) {
+                    $spendingDepartment = BusinessSpendingDepartment::where('spending_id', $department['spending_id'])
+                        ->where('department_id', $department['department_id'])
+                        ->first();
+    
+                    if ($spendingDepartment) {
+                        $spendingDepartment->revenue_expenditure = $department['revenue_expenditure'];
+                        $spendingDepartment->student_expenses = $department['student_expenses'];
+                        $spendingDepartment->customer_expenses = $department['customer_expenses'];
+                        $spendingDepartment->ti_le_chot_expenses = $department['ti_le_chot_expenses'];
+                        $spendingDepartment->save();
+                    } else {
+                        $spendingDepartment = new BusinessSpendingDepartment();
+                        $spendingDepartment->revenue_expenditure = $department['revenue_expenditure'];
+                        $spendingDepartment->student_expenses = $department['student_expenses'];
+                        $spendingDepartment->customer_expenses = $department['customer_expenses'];
+                        $spendingDepartment->ti_le_chot_expenses = $department['ti_le_chot_expenses'];
+                        $spendingDepartment->spending_id = $department['spending_id'];
+                        $spendingDepartment->department_id = $department['department_id'];
+                        $spendingDepartment->save();
+                    }
+                }
+            }
+    
+            return response()->json([
+                'error' => false,
+                'message' => 'Business spending records updated successfully!'
+            ], 200);
+        } else {
+            return response()->json([
+                'error' => true,
+                'message' => 'Business spending record not found!'
+            ], 404);
+        }
     }
 
     /**

@@ -4,6 +4,9 @@ use App\Http\Controllers\Api\BusinessMarketController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Api\BusinessSpendingController;
+use App\Http\Controllers\Api\BusinessPolicyController;
+use App\Http\Controllers\Api\BusinessPartnerController;
 
 use App\Http\Controllers\Api\CustomerCustomerController;
 
@@ -98,10 +101,10 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('active-ngay-vao-kho/{id}', 'BusinessSettingWareHouseRuleController@changeActive');
         Route::post('update-ngay-vao-kho/{id}', 'BusinessSettingWareHouseRuleController@update');
 
-        Route::post('doi-tac', 'BusinessPartnerController@index');
-        Route::post('chi-tiet-doi-tac/{id}', 'BusinessPartnerController@edit');
-        Route::post('tao-doi-tac', 'BusinessPartnerController@store');
-        Route::post('update-doi-tac/{id}', 'BusinessPartnerController@update');
+        Route::post('doi-tac', [BusinessPartnerController::class, 'index']);
+        Route::post('chi-tiet-doi-tac/{id}', [BusinessPartnerController::class, 'edit']);
+        Route::post('tao-doi-tac', [BusinessPartnerController::class, 'store']);
+        Route::post('update-doi-tac/{id}', [BusinessPartnerController::class, 'update']);
 
         Route::post('thi-truong', [BusinessMarketController::class, 'index']);
         Route::post('thi-truong/thong-ke', [BusinessMarketController::class, 'saveStatistical']);
@@ -111,15 +114,15 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('history-market', [BusinessMarketController::class, 'history_market']);
         Route::post('thi-truong/cap-nhat/{id}', [BusinessMarketController::class, 'update']);
 
-        Route::post('chi-tieu', 'BusinessSpendingController@index');
-        Route::post('chi-tiet-chi-tieu/{id}', 'BusinessSpendingController@edit');
-        Route::post('tao-chi-tieu', 'BusinessSpendingController@store');
-        Route::post('update-chi-tieu/{id}', 'BusinessSpendingController@update');
+        Route::post('chi-tieu', [BusinessSpendingController::class, 'index']);
+        Route::post('chi-tiet-chi-tieu/{id}', [BusinessSpendingController::class, 'edit']);
+        Route::post('tao-chi-tieu', [BusinessSpendingController::class, 'store']);
+        Route::post('update-chi-tieu/{id}', [BusinessSpendingController::class, 'update']);
 
-        Route::post('chinh-sach', 'BusinessPolicyController@index');
-        Route::post('chi-tiet-chinh-sach/{id}', 'BusinessPolicyController@edit');
-        Route::post('tao-chinh-sach', 'BusinessPolicyController@store');
-        Route::post('update-chinh-sach/{id}', 'BusinessPolicyController@update');
+        Route::post('chinh-sach', [BusinessPolicyController::class, 'index']);
+        Route::post('chi-tiet-chinh-sach/{id}', [BusinessPolicyController::class, 'edit']);
+        Route::post('tao-chinh-sach', [BusinessPolicyController::class, 'store']);
+        Route::post('update-chinh-sach/{id}', [BusinessPolicyController::class, 'update']);
 
 
         Route::post('khach-hang/them-khach-hang', 'CustomerCustomerController@store');
