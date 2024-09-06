@@ -10,6 +10,9 @@ use App\Http\Controllers\Api\BusinessPartnerController;
 
 use App\Http\Controllers\Api\CustomerCustomerController;
 
+use App\Http\Controllers\Api\Customer\CustomerController;
+use App\Http\Controllers\Api\Customer\DemoController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -125,13 +128,13 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('update-chinh-sach/{id}', [BusinessPolicyController::class, 'update']);
 
 
-        Route::post('khach-hang/them-khach-hang', 'CustomerCustomerController@store');
-        Route::post('khach-hang/danh-sach-khach-hang', 'CustomerCustomerController@index');
-        Route::post('khach-hang/cap-nhat-khach-hang', 'CustomerCustomerController@update');
+        Route::post('khach-hang/them-khach-hang', [CustomerController::class, 'store']);
+        Route::post('khach-hang/danh-sach-khach-hang', [CustomerController::class, 'index']);
+        Route::post('khach-hang/cap-nhat-khach-hang', [CustomerController::class, 'update']);
 
-        Route::post('khach-hang/danh-sach-demo-trai-nghiem', 'CustomerDemoController@index');
-        Route::post('khach-hang/them-demo-trai-nghiem', 'CustomerDemoController@store');
-        Route::post('khach-hang/cap-nhat-demo-trai-nghiem', 'CustomerDemoController@update');
+        Route::post('khach-hang/danh-sach-demo-trai-nghiem', [DemoController::class, 'index']);
+        Route::post('khach-hang/them-demo-trai-nghiem', [DemoController::class, 'store']);
+        Route::post('khach-hang/cap-nhat-demo-trai-nghiem', [DemoController::class, 'update']);
 
         Route::post('danh-sach-quoc-gia', 'CountriesController@index');
         Route::post('danh-sach-tinh-thanh', 'CitiesController@index');

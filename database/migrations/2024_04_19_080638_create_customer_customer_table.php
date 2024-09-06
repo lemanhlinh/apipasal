@@ -48,7 +48,8 @@ class CreateCustomerCustomerTable extends Migration
             $table->tinyInteger('contract')->default(0)->comment('Cơ hội hợp đồng');
             $table->integer('manage_id')->comment('Người quản lý');
             
-            $table->tinyInteger('active')->default(0)->comment('0: Không hoạt động; 1: Hoạt động');
+            $table->tinyInteger('active')->default(0)->comment('0: kho; 1: mới; 2: học viên');
+            $table->date('active_date')->nullable()->comment('Ngày chuyển trạng thái');
         });
     }
 
