@@ -20,7 +20,16 @@ class CustomerCustomerController extends Controller
      */
     public function index()
     {
-        return CustomerCustomer::orderBy('updated_at', 'DESC')->get();
+        return CustomerCustomer::orderBy('updated_at', 'DESC')
+        ->with([
+            'user' => function ($query) {
+                $query->select('id', 'name', 'department_id');
+            },
+            'user.department' => function ($query) {
+                $query->select('id', 'title')->with('campuses:id,title,code');
+            }
+        ])
+        ->get();
     }
 
     /**

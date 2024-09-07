@@ -11,14 +11,8 @@ class CustomerCustomer extends Model
     protected $table = 'customer_customer';
     protected $guarded = ['id'];
 
-
-    public function clue()
+    public function user()
     {
-        return $this->hasMany(BusinessPartnerClue::class, 'partner_id', 'id');
-    }
-
-    public function campuses()
-    {
-        return $this->hasOne(Campuses::class, 'id', 'campuses_id');
+        return $this->belongsTo(User::class, 'manage_id', 'id');
     }
 }
