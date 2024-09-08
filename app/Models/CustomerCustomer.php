@@ -15,4 +15,14 @@ class CustomerCustomer extends Model
     {
         return $this->belongsTo(User::class, 'manage_id', 'id');
     }
+
+    public function management()
+    {
+        return $this->belongsTo(User::class, 'manage_id');
+    }
+
+    public function source_info()
+    {
+        return $this->belongsTo(BusinessSettingSourceCustomer::class, 'source_detail');
+    }
 }

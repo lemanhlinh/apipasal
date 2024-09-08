@@ -19,13 +19,13 @@ class User extends Authenticatable implements JWTSubject
      *
      * @var array<int, string>
      */
-//    protected $fillable = [
-//        'name',
-//        'email',
-//        'password',
-//    ];
+    //    protected $fillable = [
+    //        'name',
+    //        'email',
+    //        'password',
+    //    ];
 
-protected $guarded = ['id'];
+    protected $guarded = ['id'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -74,5 +74,10 @@ protected $guarded = ['id'];
     public function regency()
     {
         return $this->belongsTo(Regencies::class, 'regency_id', 'id');
+    }
+
+    public function customers()
+    {
+        return $this->hasMany(CustomerCustomer::class, 'manage_id', 'id');
     }
 }

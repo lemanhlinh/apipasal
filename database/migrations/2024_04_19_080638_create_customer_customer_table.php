@@ -45,10 +45,11 @@ class CreateCustomerCustomerTable extends Migration
             $table->timestamp('date_registration')->nullable()->comment('Cơ hội hợp đồng - Ngày đăng ký dự kiến');
             $table->integer('product_category')->nullable()->comment('Cơ hội hợp đồng - Nhóm sản phẩm dự kiến');
             $table->integer('product')->nullable()->comment('Cơ hội hợp đồng - Sản phẩm dự kiến');
-
+            $table->tinyInteger('contract')->default(0)->comment('Cơ hội hợp đồng');
             $table->integer('manage_id')->comment('Người quản lý');
             
-            $table->tinyInteger('active')->default(0)->comment('0: Không hoạt động; 1: Hoạt động');
+            $table->tinyInteger('active')->default(0)->comment('0: kho; 1: mới; 2: học viên');
+            $table->date('active_date')->nullable()->comment('Ngày chuyển trạng thái');
         });
     }
 

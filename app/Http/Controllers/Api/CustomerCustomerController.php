@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomerCustomer;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 class CustomerCustomerController extends Controller
 {
@@ -20,16 +19,29 @@ class CustomerCustomerController extends Controller
      */
     public function index()
     {
-        return CustomerCustomer::orderBy('updated_at', 'DESC')
+        $user = Auth::user();
+
+        $customer = CustomerCustomer::orderBy('id', 'DESC')
+        ->where('manage_id', $user->id)
         ->with([
-            'user' => function ($query) {
-                $query->select('id', 'name', 'department_id');
+            'management' => function ($query) {
+                $query->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
+                    $query2->select('id', 'title')->with(['campuses' => function($query3){
+                        $query3->select('campuses.id', 'campuses.code');
+                    }]);
+                }]);
             },
-            'user.department' => function ($query) {
-                $query->select('id', 'title')->with('campuses:id,title,code');
+            'source_info' => function ($query) {
+                $query->select('id', 'title', 'code');
             }
         ])
         ->get();
+
+        foreach ($customer as $item) {
+            $item->consulting_detail =  json_decode($item->consulting_detail);
+        }
+
+        return $customer;
     }
 
     /**
@@ -53,48 +65,51 @@ class CustomerCustomerController extends Controller
         DB::beginTransaction();
         try {
             $user = Auth::user();
+            $request = (object) $request->all();
+            $segmentDetail = [];
 
             switch ($request->segment) {
                 case 1:
                     $segmentDetail = [
-                        'children' => $request->segmentInfo->children, 
+                        'children' => $request->segmentInfo['children'], 
                     ];
                     break;
                 case 2:
                     $segmentDetail = [
-                        'children' => $request->segmentInfo->children, 
+                        'children' => $request->segmentInfo['children'], 
                     ];
                     break;
                 case 3:
                     $segmentDetail = [
-                        'academic_year' => $request->segmentInfo->academic_year,
-                        'district' => $request->segmentInfo->district,
-                        'district_name' => $request->segmentInfo->district_name,
-                        'school' => $request->segmentInfo->school,
-                        'school_name' => $request->segmentInfo->school_name,
-                        'class' => $request->segmentInfo->class,
-                        'parent' => $request->segmentInfo->parent,
+                        'academic_year' => $request->segmentInfo['academic_year'],
+                        'district' => $request->segmentInfo['district'],
+                        'district_name' => $request->segmentInfo['district_name'],
+                        'school' => $request->segmentInfo['school'],
+                        'school_name' => $request->segmentInfo['school_name'],
+                        'class' => $request->segmentInfo['class'],
+                        'parent' => $request->segmentInfo['parent'],
                     ];
                     break;
                 case 4:
                     $segmentDetail = [
-                        'academic_year' => $request->segmentInfo->academic_year,
-                        'district' => $request->segmentInfo->district,
-                        'district_name' => $request->segmentInfo->district_name,
-                        'school' => $request->segmentInfo->school,
-                        'school_name' => $request->segmentInfo->school_name,
-                        'major' => $request->segmentInfo->major,
-                        'major_name' => $request->segmentInfo->major_name,
+                        'academic_year' => $request->segmentInfo['academic_year'],
+                        'district' => $request->segmentInfo['district'],
+                        'district_name' => $request->segmentInfo['district_name'],
+                        'school' => $request->segmentInfo['school'],
+                        'school_name' => $request->segmentInfo['school_name'],
+                        'major' => $request->segmentInfo['major'],
+                        'major_name' => $request->segmentInfo['major_name'],
                     ];
                     break;
                 case 5:
                     $segmentDetail = [
-                        'company' => $request->segmentInfo->company,
-                        'position' => $request->segmentInfo->position,
-                        'work' => $request->segmentInfo->work,
+                        'company' => $request->segmentInfo['company'],
+                        'position' => $request->segmentInfo['position'],
+                        'work' => $request->segmentInfo['work'],
                     ];
                     break;
             }
+
 
             $data = [
                 'title' => $request->title,
@@ -114,18 +129,13 @@ class CustomerCustomerController extends Controller
                 'consulting_detail' => json_encode($request->consulting_detail),
                 'consulting' => $request->consulting,
                 'potential' => $request->potential,
-                'date_registration' => $request->date_registration,
+                'date_registration' => Carbon::createFromFormat('dmY', $request->date_registration)->format('Y-m-d'),
                 'product_category' => $request->product_category,
                 'product' => $request->product,
+                'contract' => $request->contract ? 1 : 0,
                 'manage_id' => $user->id,
                 'active' => 1,
             ];
-
-            return response()->json(array(
-                'error' => false,
-                'data' => $request->segmentInfo,
-                'result' => 'Đã thêm mới khách hàng!',
-            ));
 
             $customer = CustomerCustomer::create($data);
 
@@ -161,76 +171,69 @@ class CustomerCustomerController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\CustomerCustomer  $businessPartner
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        $partner = CustomerCustomer::with(['clue','campuses'])->where('id',$id)->first();
-        return $partner;
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\CustomerCustomer  $businessPartner
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
+        // return response()->json(array(
+        //     'error' => false,
+        //     'message' => 'Cập nhật khách hàng thành công!',
+        //     'data' => $request->all()
+        // ));
+
         DB::beginTransaction();
         try {
-            $title = $request->input('title');
-            $phone = $request->input('phone');
-            $email = $request->input('email');
-            $type = $request->input('type');
-            $type_campuses = $request->input('type_campuses');
-            $segment = $request->input('segment');
-            $info_partner = $request->input('info_partner');
-            $campuses = $request->input('campuses');
-            $partner = CustomerCustomer::findOrFail($id);
-            $partner->update([
-                'title' => $title,
-                'phone' => $phone,
-                'email' => $email,
-                'type' => $type,
-                'type_campuses' => $type_campuses,
-                'segment' => $segment,
-                'info_partner' => $info_partner,
-                'campuses_id' => $campuses?$campuses['id']:null,
-                'active' => 1,
-            ]);
+            $data = [];
 
-            $clues = $request->input('clue');
-            if ($clues){
-                $clueTitles = collect($clues)->pluck('title')->all();
-                $partner->clue()
-                    ->whereNotIn('title', $clueTitles)
-                    ->delete();
-                foreach ($clues as $clue){
-                    if ( $clue['title']){
-                        $partner->clue()->create([
-                            'title' => $clue['title'],
-                            'phone' => $clue['phone'],
-                            'email' => $clue['email'],
-                            'position' => $clue['position'],
-                            'birthday' => Carbon::parse($clue['birthday'])->toDateString(),
-                            'active' => 1,
-                        ]);
-                    }
-                }
+            if ($request->issue) {
+                $data['issue'] = $request->issue;
             }
 
+            if ($request->consulting) {
+                $data['consulting'] = $request->consulting;
+            }
+
+            if ($request->potential) {
+                $data['potential'] = $request->potential;
+            }
+
+            if ($request->consulting_detail) {
+                $data['consulting_detail'] = json_encode($request->consulting_detail);
+            }
+
+            if ($request->consulting_date) {
+                $data['consulting_date'] = Carbon::createFromFormat('dmY', $request->consulting_date)->format('Y-m-d');
+            }
+
+            if (isset($request->contract)) {
+                $data['contract'] = $request->contract ? 1 : 0;
+            }
+
+            if ($request->product) {
+                $data['product'] = $request->product;
+            }
+
+            if ($request->product_category) {
+                $data['product_category'] = $request->product_category;
+            }
+
+            if ($request->date_registration) {
+                $data['date_registration'] = Carbon::createFromFormat('d/m/Y', $request->date_registration)->format('Y-m-d');
+            }
+
+            $customer = CustomerCustomer::findOrFail($request->id);
+
+            $customer->update($data); 
 
             DB::commit();
             return response()->json(array(
                 'error' => false,
-                'result' => 'Cập nhật thành công đối tác',
+                'message' => 'Cập nhật khách hàng thành công!',
+                'data' => $data
             ));
-            Session::flash('success', 'Cập nhật thành công đối tác');
         } catch (\Exception $exception) {
             Log::info([
                 'message' => $exception->getMessage(),
@@ -239,7 +242,7 @@ class CustomerCustomerController extends Controller
             ]);
             return response()->json(array(
                 'error' => true,
-                'result' => 'Chưa cập nhật được đối tác',
+                'message' => 'Cập nhật khách hàng không thành công!',
             ));
         }
     }
@@ -253,5 +256,5 @@ class CustomerCustomerController extends Controller
     public function destroy(CustomerCustomer $businessPartner)
     {
         //
-    }
+    } 
 }
