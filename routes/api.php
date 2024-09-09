@@ -110,6 +110,7 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('update-doi-tac/{id}', [BusinessPartnerController::class, 'update']);
 
         Route::post('thi-truong', [BusinessMarketController::class, 'index']);
+        Route::post('thi-truong-theo-hoc-vien', [BusinessMarketController::class, 'topHocVienThiTruong']);
         Route::post('thi-truong/thong-ke', [BusinessMarketController::class, 'saveStatistical']);
         Route::post('thi-truong/chi-tiet/{id}', [BusinessMarketController::class, 'edit']);
         Route::post('tao-thi-truong', [BusinessMarketController::class, 'store']);

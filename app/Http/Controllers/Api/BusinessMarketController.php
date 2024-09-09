@@ -105,6 +105,27 @@ class BusinessMarketController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+    public function topHocVienThiTruong() {
+        $records = BusinessMarketVolume::where(function($query) {
+            $data = request()->all();
+            $market_id = $data['market_id'] ?? '';
+            $year = $data['year'] ?? '';
+
+            if($market_id) {
+                $query->where('market_id', $market_id);
+            }
+            if($year) {
+                $query->where('year', $year);
+            }
+        })->orderBy('total_student', 'desc')->limit(10)->get();
+
+        return response()->json([
+            'sucess' => true,
+            'data' => $records
+        ], 200);
+    }
+
     public function create()
     {
         //
@@ -290,17 +311,17 @@ class BusinessMarketController extends Controller
         $market->save();
     
         if ($market->id) {
-    
             BusinessMarketVolume::where('market_id', $market->id)->delete();
             foreach ($array['volumes'] as $volume) {
                 $market_volume = new BusinessMarketVolume;
                 $market_volume->market_id = $market->id;
                 $market_volume->year = $volume['year']['value'] ?? 0;
+                $market_volume->total_student = $volume['total_student'] ?? 0;
                 $market_volume->more_level = json_encode($volume['items']);
                 $market_volume->total_year = count($volume['items']);
                 $market_volume->save();
             }
-    
+
             BusinessMarketFacebook::where('market_id', $market->id)->delete();
             if(!empty($array['facebook'])) {
                 foreach ($array['facebook'] as $item) {
