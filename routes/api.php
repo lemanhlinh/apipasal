@@ -132,6 +132,8 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('khach-hang/them-khach-hang', [CustomerController::class, 'store']);
         Route::post('khach-hang/danh-sach-khach-hang', [CustomerController::class, 'index']);
         Route::post('khach-hang/cap-nhat-khach-hang', [CustomerController::class, 'update']);
+        Route::post('khach-hang/chi-tiet-khach-hang', [CustomerController::class, 'detail']);
+        Route::post('khach-hang/doi-quan-ly-khach-hang', [CustomerController::class, 'changeManagement']);
 
         Route::post('khach-hang/danh-sach-demo-trai-nghiem', [DemoController::class, 'index']);
         Route::post('khach-hang/them-demo-trai-nghiem', [DemoController::class, 'store']);

@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
+
 use App\Models\CustomerCustomer;
+use App\Models\CustomerChangeManagement;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -24,11 +27,6 @@ class CustomerController extends Controller
         $this->customerService = $customerService;
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
         $user = Auth::user();
@@ -56,27 +54,11 @@ class CustomerController extends Controller
         return $customer;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         DB::beginTransaction();
         try {
-            
+
             $customer = $this->customerService->store($request);
 
             DB::commit();
@@ -99,23 +81,30 @@ class CustomerController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\CustomerCustomer  $businessPartner
-     * @return \Illuminate\Http\Response
-     */
-    public function show(CustomerCustomer $businessPartner)
+    public function detail(Request $request)
     {
-        //
+        $data = CustomerCustomer::where('telephone', $request->telephone)
+            ->with([
+                'management' => function ($query) {
+                    $query->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
+                        $query2->select('id', 'title')->with(['campuses' => function ($query3) {
+                            $query3->select('campuses.id', 'campuses.code');
+                        }]);
+                    }]);
+                },
+                'source_info' => function ($query) {
+                    $query->select('id', 'title', 'code');
+                }
+            ])
+            ->first();
+
+        return response()->json(array(
+            'error' => false,
+            'message' => 'Thành công',
+            'data' => $data
+        ));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request)
     {
         // return response()->json(array(
@@ -187,12 +176,6 @@ class CustomerController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Request $request
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(Request $request)
     {
         $user = Auth::user();
@@ -242,5 +225,66 @@ class CustomerController extends Controller
                 'message' => $errorMessage,
             ));
         }
+    }
+
+    public function changeManagement(Request $request)
+    {
+        $user = Auth::user();
+        $customer = CustomerCustomer::where('id', $request->id)->first();
+
+        if (!$customer || $customer->manage_id == $user->id || $customer->active != 0) {
+            return response()->json(array(
+                'error' => false,
+                'message' => 'Không tìm thấy khách hàng hoặc bạn không có quyền thay đổi quản lý khách hàng này!',
+                'data' => []
+            ));
+        }
+
+        $changeManagement = CustomerChangeManagement::where('customer_id', $request->customer_id)
+            ->where('user_id', $user->id)
+            ->where('status', 0)
+            ->first();
+
+        if ($changeManagement) {
+            return response()->json(array(
+                'error' => false,
+                'message' => 'Bạn đã đề xuất thay đổi quản lý khách hàng này!',
+                'data' => []
+            ));
+        }
+
+        try {
+            $result = CustomerChangeManagement::create([
+                'customer_id' => $request->customer_id,
+                'user_id' => $user->id,
+                'reason' => $customer->reason,
+            ]);
+
+            DB::commit();
+
+            return response()->json(array(
+                'error' => false,
+                'message' => "Đề xuất thay đổi thành công!",
+                'data' => $result
+            ));
+        } catch (\Exception $exception) {
+            Log::info([
+                'message' => $exception->getMessage(),
+                'line' => __LINE__,
+                'method' => __METHOD__
+            ]);
+
+            DB::rollBack();
+
+            return response()->json(array(
+                'error' => true,
+                'message' => "Đề xuất thay đổi không thành công!",
+            ));
+        }
+    }
+
+    public function statistics()
+    {
+        $user = Auth::user();
     }
 }
