@@ -138,9 +138,31 @@ class BusinessMarketController extends Controller
      * @return \Illuminate\Http\Response
      */
 
+    public function statistical() {
+        $query = new BusinessMarketStatistical();
+        if(request()->input('year')) {
+            $query = $query->where('year', request()->input('year'));
+        }
+        if(request()->input('campus_id')) {
+            $query = $query->where('campus_id', request()->input('campus_id'));
+        }
+        if(request()->input('city_id')) {
+            $query = $query->where('city_id', request()->input('city_id'));
+        }
+        if(request()->input('district_id')) {
+            $query = $query->where('district_id', request()->input('district_id'));
+        }
+        $marketStatistical = $query->get();
+
+        return response()->json([
+            'data' => $marketStatistical
+        ]);
+    }
+
     public function saveStatistical()
     {
         $marketStatistical = BusinessMarketStatistical::where('year', '=', request('year'))
+        ->where('campus_id', '=', request('campus_id'))
         ->where('city_id', '=', request('city_id'))
         ->where('district_id', '=', request('district_id'))
         ->firstOrCreate([]);
@@ -169,6 +191,7 @@ class BusinessMarketController extends Controller
             'year' => 'nullable|integer',
             'city_id' => 'nullable|integer',
             'district_id' => 'nullable|integer',
+            'campus_id' => 'nullable|integer',
         ]);
 
         $marketStatistical->middleSchoolCount += $validatedData['middleSchoolCount'] ?? 0;
@@ -198,6 +221,7 @@ class BusinessMarketController extends Controller
         $marketStatistical->year = $validatedData['year'] ?? 0;
         $marketStatistical->city_id = $validatedData['city_id'] ?? 0;
         $marketStatistical->district_id = $validatedData['district_id'] ?? 0;
+        $marketStatistical->campus_id = $validatedData['campus_id'] ?? 0;
 
         $marketStatistical->save();
         return response()->json([
