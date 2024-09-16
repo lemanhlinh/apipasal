@@ -11,9 +11,16 @@ use App\Models\Campuses;
 use Illuminate\Http\Request;
 use App\Models\BusinessMarketStatistical;
 use Illuminate\Support\Facades\Bus;
+use App\Services\Business\BusinessMarketService;
 
 class BusinessMarketController extends Controller
 {
+    private $bussinessMarketService;
+
+    public function __construct()
+    {
+        $this->bussinessMarketService = new BusinessMarketService();
+    }
     /**
      * Display a listing of the resource.
      *
@@ -119,14 +126,20 @@ class BusinessMarketController extends Controller
             if ($year) {
                 $query->where('year', $year);
             }
-        })->orderBy('total_student', 'desc')->limit(10)->get();
+        })->with('market')->orderBy('total_student', 'desc')->limit(10)->get();
 
         $years = BusinessMarketVolume::select('year')->distinct()->orderBy('year')->pluck('year');
+        $total_student = 0;
+
+        foreach ($records as $record) {
+            $total_student += $record->total_student;
+        }
         return response()->json([
             'sucess' => true,
             'data' => array(
                 'years' => $years,
-                'data' => $records
+                'data' => $records,
+                'total_student' => $total_student
             ),
         ], 200);
     }
@@ -256,7 +269,6 @@ class BusinessMarketController extends Controller
     public function store(Request $request)
     {
         $array = $request->all();
-
         $market = new BusinessMarket;
         $market->title = $array['title'];
         $market->segment = $array['segment'];
@@ -270,32 +282,54 @@ class BusinessMarketController extends Controller
         $market->total_student = $array['total_student'];
         $market->save();
 
+        foreach ($array['campuses'] as $item) {
+            $campus = Campuses::where('code', $item)->first();
+
+            $request = $this->bussinessMarketService->createDataForAddStatistical(
+                $campus->id, 
+                $array['year']['value'], 
+                $array['segment'], 
+                $array['city_id'], 
+                $array['district_id'], 
+                $array['total_student']
+            );
+
+            $this->bussinessMarketService->addStatistical($request);
+        }
         if ($market->id) {
 
-            foreach ($array['volumes'] as $volume) {
-                $market_volume = new BusinessMarketVolume;
-                $market_volume->market_id = $market->id;
-                $market_volume->year = $volume['year']['value'] ?? 0;
-                $market_volume->more_level = json_encode($volume['items']);
-                $market_volume->total_year = count($volume['items']);
-                $market_volume->save();
+            if (!empty($array['volumes'])) {
+                foreach ($array['volumes'] as $volume) {
+                    $market_volume = new BusinessMarketVolume;
+                    $market_volume->market_id = $market->id;
+                    $market_volume->year = $volume['year']['value'] ?? 0;
+                    $market_volume->more_level = json_encode($volume['items']);
+                    $market_volume->total_year = count($volume['items']);
+                    $market_volume->total_student = $array['total_student'];
+                    $market_volume->save();
+                }
             }
 
-            foreach ($array['facebook'] as $item) {
-                $market_facebook = new BusinessMarketFacebook;
-                $market_facebook->market_id = $market->id;
-                $market_facebook->title = $item['title'];
-                $market_facebook->link = $item['link'];
-                $market_facebook->save();
+            if (!empty($array['facebook'])) {
+                foreach ($array['facebook'] as $item) {
+                    $market_facebook = new BusinessMarketFacebook;
+                    $market_facebook->market_id = $market->id;
+                    $market_facebook->title = $item['title'];
+                    $market_facebook->link = $item['link'];
+                    $market_facebook->save();
+                }
             }
 
-            foreach ($array['histories'] as $item) {
-                $market_history = new BusinessMarketHistory;
-                $market_history->market_id = $market->id;
-                $market_history->time_action = $item['time_action']['value'] ?? 0;
-                $market_history->content = $item['content'];
-                $market_history->save();
+            if (!empty($array['histories'])) {
+                foreach ($array['histories'] as $item) {
+                    $market_history = new BusinessMarketHistory;
+                    $market_history->market_id = $market->id;
+                    $market_history->time_action = $item['time_action']['value'] ?? 0;
+                    $market_history->content = $item['content'];
+                    $market_history->save();
+                }
             }
+
 
             return response()->json(['success' => true, 'message' => 'Market saved successfully']);
         }
