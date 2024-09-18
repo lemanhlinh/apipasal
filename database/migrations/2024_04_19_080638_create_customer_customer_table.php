@@ -22,11 +22,11 @@ class CreateCustomerCustomerTable extends Migration
             $table->tinyInteger('sex')->default(0)->comment('1: Nam; 2: Nữ; 3: Khác');
             $table->string('year_birth')->nullable()->comment('Năm sinh');
 
-            $table->integer('country')->nullable()->comment('Quốc gia');
+            $table->integer('country_id')->nullable()->comment('Quốc gia');
             $table->string('country_name')->nullable()->comment('Quốc gia');
-            $table->integer('province')->nullable()->comment('Thành phố');
-            $table->string('province_name')->nullable()->comment('Thành phố');
-            $table->integer('district')->nullable()->comment('Quận huyện');
+            $table->integer('city_id')->nullable()->comment('Thành phố');
+            $table->string('city_name')->nullable()->comment('Thành phố');
+            $table->integer('district_id')->nullable()->comment('Quận huyện');
             $table->string('district_name')->nullable()->comment('Quận huyện');
             $table->string('address')->nullable()->comment('Địa chỉ');
 
@@ -43,13 +43,15 @@ class CreateCustomerCustomerTable extends Migration
             $table->tinyInteger('potential')->default(1)->comment('Độ tiềm năng; 1: Thấp; 2: Trung bình; 3: Cao');
             
             $table->timestamp('date_registration')->nullable()->comment('Cơ hội hợp đồng - Ngày đăng ký dự kiến');
-            $table->integer('product_category')->nullable()->comment('Cơ hội hợp đồng - Nhóm sản phẩm dự kiến');
-            $table->integer('product')->nullable()->comment('Cơ hội hợp đồng - Sản phẩm dự kiến');
+            $table->integer('product_category_id')->nullable()->comment('Cơ hội hợp đồng - Nhóm sản phẩm dự kiến');
+            $table->integer('product_id')->nullable()->comment('Cơ hội hợp đồng - Sản phẩm dự kiến');
             $table->tinyInteger('contract')->default(0)->comment('Cơ hội hợp đồng');
             $table->integer('manage_id')->comment('Người quản lý');
             
             $table->tinyInteger('active')->default(0)->comment('0: kho; 1: mới; 2: học viên');
             $table->date('active_date')->nullable()->comment('Ngày chuyển trạng thái');
+            $table->date('birthday')->nullable()->comment('Ngày sinh');
+
         });
     }
 

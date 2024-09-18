@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 
-use App\Models\CustomerDemo;
-use App\Models\CustomerDemoCustomer;
+use App\Models\Customer\Demo;
 
 class DemoController extends Controller
 {
@@ -19,7 +18,7 @@ class DemoController extends Controller
     {
         $user = Auth::user();
 
-        $demo = CustomerDemo::orderBy('id', 'DESC')
+        $demo = Demo::orderBy('id', 'DESC')
         ->where('user_id', $user->id)
         ->with([
             'user_manage' => function ($query) {
@@ -79,7 +78,7 @@ class DemoController extends Controller
                 'invite' => 0,
             ];
 
-            $demo = CustomerDemo::create($data);
+            $demo = Demo::create($data);
 
             DB::commit();
             return response()->json(array(

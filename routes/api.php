@@ -127,16 +127,32 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('tao-chinh-sach', [BusinessPolicyController::class, 'store']);
         Route::post('update-chinh-sach/{id}', [BusinessPolicyController::class, 'update']);
 
-
+        # Customer\Customer
         Route::post('khach-hang/them-khach-hang', [CustomerController::class, 'store']);
         Route::post('khach-hang/danh-sach-khach-hang', [CustomerController::class, 'index']);
         Route::post('khach-hang/cap-nhat-khach-hang', [CustomerController::class, 'update']);
         Route::post('khach-hang/chi-tiet-khach-hang', [CustomerController::class, 'detail']);
         Route::post('khach-hang/doi-quan-ly-khach-hang', [CustomerController::class, 'changeManagement']);
+        Route::post('khach-hang/thong-ke-khach-hang', [CustomerController::class, 'statistics']);
 
+        # Customer\Demo
         Route::post('khach-hang/danh-sach-demo-trai-nghiem', [DemoController::class, 'index']);
         Route::post('khach-hang/them-demo-trai-nghiem', [DemoController::class, 'store']);
         Route::post('khach-hang/cap-nhat-demo-trai-nghiem', [DemoController::class, 'update']);
+
+        # Customer\Student
+        Route::post('khach-hang/hoc-vien/danh-sach', [CustomerController::class, 'index']);
+        Route::post('khach-hang/hoc-vien/them', [CustomerController::class, 'store']);
+        Route::post('khach-hang/hoc-vien/cap-nhat', [CustomerController::class, 'update']);
+        Route::post('khach-hang/hoc-vien/thong-ke', [CustomerController::class, 'statistics']);
+
+        # Customer\Contract
+        Route::post('khach-hang/hop-dong/danh-sach', [CustomerController::class, 'index']);
+        Route::post('khach-hang/hop-dong/them', [CustomerController::class, 'store']);
+        Route::post('khach-hang/hop-dong/cap-nhat', [CustomerController::class, 'update']);
+        Route::post('khach-hang/hop-dong/thong-ke', [CustomerController::class, 'statistics']);
+
+
 
         Route::post('danh-sach-quoc-gia', 'CountriesController@index');
         Route::post('danh-sach-tinh-thanh', 'CitiesController@index');
