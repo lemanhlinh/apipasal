@@ -169,7 +169,8 @@ class BusinessMarketController extends Controller
             $query = $query->where('city_id', request()->input('city_id'));
         }
         if (request()->input('district_id')) {
-            $query = $query->where('district_id', request()->input('district_id'));
+            $district_id = request()->input('district_id');
+            $query = $query->whereIn('district_id', $district_id);
         }
         $marketStatistical = $query->get();
 
