@@ -2,6 +2,8 @@
 namespace App\Services\Business;
 
 use App\Models\BusinessPartnerStatus;
+use App\Models\BusinessPartnerVolumn;
+
 use Illuminate\Support\Carbon;
 
 class BusinessPartnerService
@@ -23,5 +25,11 @@ class BusinessPartnerService
         }
         
         return;
+    }
+
+    public function updateTopHocVienThiTruong() {
+        $market_id = request()->input('market_id');
+
+        $record = BusinessPartnerStatus::where('market_id', $market_id)->whereDate('created_at',Carbon::now()->format('Y-m-d'))->first();
     }
 }
