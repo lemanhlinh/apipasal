@@ -126,20 +126,20 @@ class BusinessMarketController extends Controller
             if ($year) {
                 $query->where('year', $year);
             }
-        })->with('market')->orderBy('total_student', 'desc')->limit(10)->get();
+        })->with('market')->orderBy('total_student_pasal', 'desc')->limit(10)->get();
 
         $years = BusinessMarketVolume::select('year')->distinct()->orderBy('year')->pluck('year');
-        $total_student = 0;
+        $total_student_pasal = 0;
 
         foreach ($records as $record) {
-            $total_student += $record->total_student;
+            $total_student_pasal += $record->total_student_pasal;
         }
         return response()->json([
             'sucess' => true,
             'data' => array(
                 'years' => $years,
                 'data' => $records,
-                'total_student' => $total_student
+                'total_student_pasal' => $total_student_pasal
             ),
         ], 200);
     }
@@ -284,16 +284,15 @@ class BusinessMarketController extends Controller
 
         foreach ($array['campuses'] as $item) {
             $campus = Campuses::where('code', $item)->first();
-
             $request = $this->bussinessMarketService->createDataForAddStatistical(
                 $campus->id, 
                 $array['year']['value'], 
                 $array['segment'], 
                 $array['city_id'], 
                 $array['district_id'], 
-                $array['total_student']
+                $array['total_student'],
+                1
             );
-
             $this->bussinessMarketService->addStatistical($request);
         }
         if ($market->id) {
@@ -337,6 +336,9 @@ class BusinessMarketController extends Controller
         return response()->json(['success' => false, 'message' => 'Failed to save market'], 500);
     }
 
+    function thong_ke_thi_truong($item) {
+
+    }
 
     function group_facebook(Request $request)
     {
