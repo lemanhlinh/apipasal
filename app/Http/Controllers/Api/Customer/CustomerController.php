@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
 
-use App\Models\CustomerCustomer;
-use App\Models\CustomerChangeManagement;
+use App\Models\Customer\Customer;
+use App\Models\Customer\ChangeManagement;
+use App\Models\Customer\CustomerStatus;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +32,7 @@ class CustomerController extends Controller
     {
         $user = Auth::user();
 
-        $customer = CustomerCustomer::orderBy('id', 'DESC')
+        $customer = Customer::orderBy('id', 'DESC')
             ->where('manage_id', $user->id)
             ->with([
                 'management' => function ($query) {
@@ -83,18 +84,37 @@ class CustomerController extends Controller
 
     public function detail(Request $request)
     {
-        $data = CustomerCustomer::where('telephone', $request->telephone)
+        $data = Customer::where('phone', $request->telephone)
             ->with([
                 'management' => function ($query) {
-                    $query->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
-                        $query2->select('id', 'title')->with(['campuses' => function ($query3) {
-                            $query3->select('campuses.id', 'campuses.code');
+                    $query->select('id', 'name', 'department_id')->with(['department' => function ($queryDepartment) {
+                        $queryDepartment->select('id', 'title')->with(['campuses' => function ($queryCampus) {
+                            $queryCampus->select('campuses.id', 'campuses.code');
                         }]);
                     }]);
                 },
                 'source_info' => function ($query) {
                     $query->select('id', 'title', 'code');
-                }
+                },
+                'country' => function ($query) {
+                    $query->select('id', 'name');
+                },
+                'city' => function ($query) {
+                    $query->select('id', 'name', 'code');
+                },
+                'district' => function ($query) {
+                    $query->select('id', 'name', 'code');
+                },
+                'segment_info' => function ($query) {
+                    $query->with([
+                        'district' => function ($queryDistrict) {
+                            $queryDistrict->select('id', 'name', 'code');
+                        },
+                        'market' => function ($queryMarket) {
+                            $queryMarket->select('id', 'title');
+                        },
+                    ]);
+                },
             ])
             ->first();
 
@@ -153,7 +173,7 @@ class CustomerController extends Controller
                 $data['date_registration'] = Carbon::createFromFormat('d/m/Y', $request->date_registration)->format('Y-m-d');
             }
 
-            $customer = CustomerCustomer::findOrFail($request->id);
+            $customer = Customer::findOrFail($request->id);
 
             $customer->update($data);
 
@@ -179,7 +199,7 @@ class CustomerController extends Controller
     public function destroy(Request $request)
     {
         $user = Auth::user();
-        $record = CustomerCustomer::where('id', $request->id)
+        $record = Customer::where('id', $request->id)
             ->where('manage_id', $user->id)
             ->first();
 
@@ -230,7 +250,7 @@ class CustomerController extends Controller
     public function changeManagement(Request $request)
     {
         $user = Auth::user();
-        $customer = CustomerCustomer::where('id', $request->id)->first();
+        $customer = Customer::where('id', $request->id)->first();
 
         if (!$customer || $customer->manage_id == $user->id || $customer->active != 0) {
             return response()->json(array(
@@ -240,7 +260,7 @@ class CustomerController extends Controller
             ));
         }
 
-        $changeManagement = CustomerChangeManagement::where('customer_id', $request->customer_id)
+        $changeManagement = ChangeManagement::where('customer_id', $request->customer_id)
             ->where('user_id', $user->id)
             ->where('status', 0)
             ->first();
@@ -254,7 +274,7 @@ class CustomerController extends Controller
         }
 
         try {
-            $result = CustomerChangeManagement::create([
+            $result = ChangeManagement::create([
                 'customer_id' => $request->customer_id,
                 'user_id' => $user->id,
                 'reason' => $customer->reason,
@@ -286,5 +306,28 @@ class CustomerController extends Controller
     public function statistics()
     {
         $user = Auth::user();
+
+        $data = CustomerStatus::where('manage_id', $user->id)
+            ->select([
+                DB::raw('SUM(primary_school) as primary_school_total'),
+                DB::raw('SUM(secondary_school) as secondary_school_total'),
+                DB::raw('SUM(high_school) as high_school_total'),
+                DB::raw('SUM(college) as college_total'),
+                DB::raw('SUM(working) as working_total'),
+                DB::raw('SUM(customer_success) as customer_success_total'),
+                DB::raw('SUM(customer_new) as customer_new_total'),
+                DB::raw('SUM(customer_depot) as customer_depot_total'),
+                DB::raw('SUM(customer_total) as customer_total_total'),
+                DB::raw('SUM(contract_total) as contract_total_total'),
+                DB::raw('SUM(contract_success) as contract_success_total'),
+                DB::raw('SUM(contract_expired) as contract_expired_total'),
+            ])
+            ->first();
+
+        return response()->json(array(
+            'error' => false,
+            'message' => "Thành công!",
+            'data' => $data
+        ));
     }
 }
