@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\CustomerCustomerController;
 
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Customer\DemoController;
+use App\Http\Controllers\Api\Customer\StudentController;
+use App\Http\Controllers\Api\Customer\ContractController;
 
 /*
 |--------------------------------------------------------------------------
@@ -144,16 +146,16 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('khach-hang/cap-nhat-demo-trai-nghiem', [DemoController::class, 'update']);
 
         # Customer\Student
-        Route::post('khach-hang/hoc-vien/danh-sach', [CustomerController::class, 'index']);
-        Route::post('khach-hang/hoc-vien/them', [CustomerController::class, 'store']);
-        Route::post('khach-hang/hoc-vien/cap-nhat', [CustomerController::class, 'update']);
-        Route::post('khach-hang/hoc-vien/thong-ke', [CustomerController::class, 'statistics']);
+        Route::post('khach-hang/hoc-vien/danh-sach', [StudentController::class, 'index']);
+        Route::post('khach-hang/hoc-vien/them', [StudentController::class, 'store']);
+        Route::post('khach-hang/hoc-vien/cap-nhat', [StudentController::class, 'update']);
+        Route::post('khach-hang/hoc-vien/thong-ke', [StudentController::class, 'statistics']);
 
         # Customer\Contract
-        Route::post('khach-hang/hop-dong/danh-sach', [CustomerController::class, 'index']);
-        Route::post('khach-hang/hop-dong/them', [CustomerController::class, 'store']);
-        Route::post('khach-hang/hop-dong/cap-nhat', [CustomerController::class, 'update']);
-        Route::post('khach-hang/hop-dong/thong-ke', [CustomerController::class, 'statistics']);
+        Route::post('khach-hang/hop-dong/danh-sach', [ContractController::class, 'index']);
+        Route::post('khach-hang/hop-dong/them', [ContractController::class, 'store']);
+        Route::post('khach-hang/hop-dong/cap-nhat', [ContractController::class, 'update']);
+        Route::post('khach-hang/hop-dong/thong-ke', [ContractController::class, 'statistics']);
 
 
 
