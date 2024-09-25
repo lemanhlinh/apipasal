@@ -18,7 +18,7 @@ class CreateCustomerContractBillsTable extends Migration
             $table->unsignedBigInteger('contract_id');
             $table->tinyInteger('bill_type')->comment('1: Thu; 2: Chi');
             $table->tinyInteger('transaction_type')->comment('1: Học phí; 2: Bảo lưu; 3: Học lại');
-            $table->unsignedBigInteger('amount');
+            $table->unsignedBigInteger('amount_payment')->comment('Số tiền đóng trong bill');
             $table->string('bill_number')->comment('Mã số phiếu thu');
             $table->date('date_payment')->comment('Ngày đóng tiền');
             $table->text('note')->comment('Ghi chú');

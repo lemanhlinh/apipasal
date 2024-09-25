@@ -18,11 +18,17 @@ class ProductsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Products::with(['cat' => function($q){
+        $query = Products::with(['cat' => function($q){
             $q->select('id','title','active');
-        }])->with(['courses'])->orderBy('id','DESC')->get();
+        }])->with(['courses'])->orderBy('id','DESC');
+
+        if ($request->has('cat_id')) {
+            $query->where('cat_id', $request->cat_id);
+        }
+    
+        $products = $query->get();
 
         foreach ($products as $product) {
             foreach ($product->courses as $courses) {

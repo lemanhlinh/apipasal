@@ -24,13 +24,17 @@ class CreateCustomerContractsTable extends Migration
 
             $table->unsignedBigInteger('special_id')->default(0);
             $table->unsignedBigInteger('promotion_id')->default(0);
-            $table->integer('offer_extra')->default(0);
+            // $table->integer('offer_extra')->default(0);
             $table->unsignedBigInteger('manage_id');
-
+          
             $table->unsignedBigInteger('amount');
-            $table->string('bill_number')->nullable()->comment('Mã số phiếu thu');
-            $table->date('date_payment')->comment('Ngày đóng tiền');
-            $table->text('note')->comment('Ghi chú');
+            $table->unsignedBigInteger('amount_offer');
+            $table->unsignedBigInteger('amount_special');
+            $table->unsignedBigInteger('amount_promotion');
+
+            // $table->string('bill_number')->nullable()->comment('Mã số phiếu thu');
+            // $table->date('date_payment')->comment('Ngày đóng tiền');
+            // $table->text('note')->comment('Ghi chú');
 
 
 

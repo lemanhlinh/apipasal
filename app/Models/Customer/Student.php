@@ -16,6 +16,11 @@ class Student extends Model
         return $this->belongsTo(Customer::class, 'customer_id');
     }
 
+    public function segment()
+    {
+        return $this->belongsTo(CustomerSegment::class, 'customer_segment_id');
+    }
+
     public function contracts()
     {
         return $this->hasMany(Contract::class, 'student_id', 'id');

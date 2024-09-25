@@ -23,7 +23,7 @@ class CreateCustomerSegmentsTable extends Migration
             $table->unsignedBigInteger('market_id')->default(0)->comment('Trường học - Thị trường');
             $table->string('class')->nullable()->comment('Lớp');
 
-            $table->date('birth')->nullable();
+            $table->date('birthday')->nullable();
 
             $table->json('parent')->nullable();
             $table->string('telephone')->nullable();
