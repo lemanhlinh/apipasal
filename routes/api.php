@@ -13,6 +13,9 @@ use App\Http\Controllers\Api\CustomerCustomerController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Customer\DemoController;
 
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\PermissionController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -52,10 +55,13 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('active-chuc-vu/{id}', 'RegenciesController@changeActive');
         Route::post('update-chuc-vu/{id}', 'RegenciesController@update');
 
-        Route::post('nhan-vien', 'UserController@index');
-        Route::post('tao-nhan-vien', 'UserController@store');
-        Route::post('active-nhan-vien/{id}', 'UserController@changeActive');
-        Route::post('update-nhan-vien/{id}', 'UserController@update');
+        Route::post('all-permission', [PermissionController::class,'index']);
+        Route::post('role-permission', [PermissionController::class,'rolePermission']);
+
+        Route::post('nhan-vien', [UserController::class,'index']);
+        Route::post('tao-nhan-vien', [UserController::class,'store']);
+        Route::post('active-nhan-vien/{id}', [UserController::class,'changeActive']);
+        Route::post('update-nhan-vien/{id}', [UserController::class,'update']);
 
         Route::post('nhom-khoa-hoc', 'CourseCategoriesController@index');
         Route::post('tao-nhom-khoa-hoc', 'CourseCategoriesController@store');

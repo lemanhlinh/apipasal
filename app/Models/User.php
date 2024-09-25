@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use App\Models\Role;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -79,5 +80,9 @@ class User extends Authenticatable implements JWTSubject
     public function customers()
     {
         return $this->hasMany(CustomerCustomer::class, 'manage_id', 'id');
+    }
+
+    public function role_has_permissions() {
+        return $this->hasMany(Role::class, 'role_id', 'id');
     }
 }

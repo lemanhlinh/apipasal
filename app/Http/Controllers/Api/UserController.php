@@ -208,4 +208,6 @@ class UserController extends Controller
             'message' => trans('message.change_active_article_success')
         ];
     }
+
+ 
 }
