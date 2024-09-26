@@ -4,6 +4,10 @@ use App\Http\Controllers\Api\BusinessMarketController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+
+use App\Http\Controllers\Api\RegenciesController;
+
+
 use App\Http\Controllers\Api\BusinessSpendingController;
 use App\Http\Controllers\Api\BusinessPolicyController;
 use App\Http\Controllers\Api\BusinessPartnerController;
@@ -12,6 +16,8 @@ use App\Http\Controllers\Api\CustomerCustomerController;
 
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Customer\DemoController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -48,7 +54,7 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('update-phong-ban/{id}', 'DepartmentController@update');
 
         Route::post('chuc-vu', 'RegenciesController@index');
-        Route::post('tao-chuc-vu', 'RegenciesController@store');
+        Route::post('tao-chuc-vu', [RegenciesController::class, 'store']);
         Route::post('active-chuc-vu/{id}', 'RegenciesController@changeActive');
         Route::post('update-chuc-vu/{id}', 'RegenciesController@update');
 
