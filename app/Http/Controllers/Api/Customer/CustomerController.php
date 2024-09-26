@@ -42,14 +42,12 @@ class CustomerController extends Controller
                         }]);
                     }]);
                 },
-                'source_info' => function ($query) {
-                    $query->select('id', 'title', 'code');
-                }
             ])
             ->get();
 
         foreach ($customer as $item) {
             $item->consulting_detail =  json_decode($item->consulting_detail);
+            $item->source_info;
         }
 
         return $customer;
@@ -93,9 +91,6 @@ class CustomerController extends Controller
                         }]);
                     }]);
                 },
-                'source_info' => function ($query) {
-                    $query->select('id', 'title', 'code');
-                },
                 'country' => function ($query) {
                     $query->select('id', 'name');
                 },
@@ -115,8 +110,17 @@ class CustomerController extends Controller
                         },
                     ]);
                 },
+                'students',
             ])
             ->first();
+
+        if ($data) {
+            $data->source_info;
+            $data->consulting_detail =  json_decode($data->consulting_detail);
+            foreach ($data->segment_info as $segmentItem) {
+                $segmentItem->parent = json_decode($segmentItem->parent);
+            }
+        }
 
         return response()->json(array(
             'error' => false,

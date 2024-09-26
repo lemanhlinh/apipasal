@@ -18,8 +18,14 @@ class BusinessPartnerController extends Controller
      */
     public function index()
     {
-        $partners = BusinessPartner::with(['clue','campuses'])->orderBy('id', 'DESC')->get();
-        return $partners;
+        $query = BusinessPartner::with(['clue', 'campuses'])->orderBy('id', 'DESC');
+        if(request()->has('segment')) {
+            $query->where('segment', request()->segment);
+        }
+        $partners = $query->paginate(10);
+        return response()->json(array(
+            'data' => $partners,
+        ));
     }
 
     /**
@@ -41,11 +47,11 @@ class BusinessPartnerController extends Controller
     public function store(Request $request)
     {
         DB::beginTransaction();
+
         try {
             if (!$request->has('title')) {
                 return response()->json(['error' => 'Title is required'], 400);
             }
-            
             $title = $request->title;
             $phone = $request->phone;
             $email = $request->email;
@@ -63,14 +69,14 @@ class BusinessPartnerController extends Controller
                 'type_campuses' => $type_campuses,
                 'segment' => $segment,
                 'info_partner' => $info_partner,
-                'campuses_id' => $campuses,
+                'campuses_id' => json_encode($campuses),
                 'active' => 1,
             ]);
 
             $clues = $request->input('clue');
-            if ($clues){
-                foreach ($clues as $clue){
-                    if ($clue['title']){
+            if ($clues) {
+                foreach ($clues as $clue) {
+                    if ($clue['title']) {
                         $partner->clue()->create([
                             'title' => $clue['title'],
                             'phone' => $clue['phone'],
@@ -122,7 +128,7 @@ class BusinessPartnerController extends Controller
      */
     public function edit($id)
     {
-        $partner = BusinessPartner::with(['clue','campuses'])->where('id',$id)->first();
+        $partner = BusinessPartner::with(['clue', 'campuses'])->where('id', $id)->first();
         return $partner;
     }
 
@@ -154,18 +160,18 @@ class BusinessPartnerController extends Controller
                 'type_campuses' => $type_campuses,
                 'segment' => $segment,
                 'info_partner' => $info_partner,
-                'campuses_id' => $campuses?$campuses['id']:null,
+                'campuses_id' => $campuses ? $campuses['id'] : null,
                 'active' => 1,
             ]);
 
             $clues = $request->input('clue');
-            if ($clues){
+            if ($clues) {
                 $clueTitles = collect($clues)->pluck('email')->all();
                 $partner->clue()
                     ->whereIn('email', $clueTitles)
                     ->delete();
-                foreach ($clues as $clue){
-                    if ( $clue['title']){
+                foreach ($clues as $clue) {
+                    if ($clue['title']) {
                         $partner->clue()->create([
                             'title' => $clue['title'],
                             'phone' => $clue['phone'],

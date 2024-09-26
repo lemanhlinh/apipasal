@@ -279,7 +279,11 @@ class BusinessMarketController extends Controller
         $market->potential = $array['potential'];
         $market->note = $array['note'] ?? '';
         $market->active = 1;
-        $market->campuses_id = json_encode($array['campuses']);
+        $campuses = Campuses::whereIn('code', $array['campuses'])->get();
+        $campusesIds = $campuses->pluck('id')->toArray();        
+        $market->campuses_code = json_encode($array['campuses']);
+        $market->campuses_id = json_encode($campusesIds);
+
         $market->total_student = $array['total_student'];
         $market->save();
 

@@ -15,9 +15,9 @@ class CreateBusinessMarketFacebookTable extends Migration
     {
         Schema::create('business_market_facebook', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->string('link');
-            $table->integer('market_id');
+            $table->string('title')->nullable();
+            $table->string('link')->nullable();
+            $table->integer('market_id')->nullable();
             $table->timestamps();
         });
     }
