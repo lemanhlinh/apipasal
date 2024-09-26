@@ -58,13 +58,15 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('tao-phong-ban', 'DepartmentController@store');
         Route::post('update-phong-ban/{id}', 'DepartmentController@update');
 
-        Route::post('chuc-vu', 'RegenciesController@index');
+        Route::post('chuc-vu', [RegenciesController::class, 'index']);
         Route::post('tao-chuc-vu', [RegenciesController::class, 'store']);
         Route::post('active-chuc-vu/{id}', 'RegenciesController@changeActive');
         Route::post('update-chuc-vu/{id}', 'RegenciesController@update');
 
         Route::post('all-permission', [PermissionController::class,'index']);
         Route::post('role-permission', [PermissionController::class,'rolePermission']);
+        Route::post('save-permission', [PermissionController::class,'savePermission']);
+        Route::post('clone-permission', [PermissionController::class,'clonePermission']);
 
         Route::post('nhan-vien', [UserController::class,'index']);
         Route::post('tao-nhan-vien', [UserController::class,'store']);

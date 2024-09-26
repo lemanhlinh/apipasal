@@ -31,7 +31,6 @@ class PermissionSeeder extends Seeder
         ]);
 
         $roleAdmin->givePermissionTo($allPermissionNames);
-
         $user = User::find(1);
 
         if ($user) {

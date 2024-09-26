@@ -11,6 +11,12 @@ use App\Http\Resources\Users\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use App\Models\User;
+use App\Models\Regencies;
+use App\Models\Role as RoleModel;
+use App\Models\Permission as PermissionModel;
 
 class AuthController extends Controller
 {
@@ -30,13 +36,32 @@ class AuthController extends Controller
 
         $remember = $request->has('remember');
 
-        if (! $token = auth('api')->attempt($credentials, $remember)) {
+
+
+        if (!$token = auth('api')->attempt($credentials, $remember)) {
             return response()->json(['message' => 'Wrong email or password'], 401);
         }
 
-//        if (! auth('api')->user()->isActive()) {
-//            return response()->json(['message' => 'Account is not active'], 401);
-//        }
+        $user = Auth::user();  
+        $role_permission = RoleModel::where('role_id', $user->regency_id)->get();
+        $permissions = PermissionModel::whereIn('id', $role_permission->pluck('permission_id'))->get();
+        $allPermissionNames = $permissions->pluck('name')->toArray();
+        $regency = Regencies::where('id', $user->regency_id)->first();
+        $role = Role::updateOrCreate([
+            'name' => $regency->code,
+            'display_name' => $regency->title,
+            'guard_name' => 'api',
+        ]);
+        $role->givePermissionTo($allPermissionNames);
+        if ($user) {
+            $user->assignRole($role);
+        }
+
+
+        //        if (! auth('api')->user()->isActive()) {
+        //            return response()->json(['message' => 'Account is not active'], 401);
+        //        }
+
 
         return $this->respondWithUserToken($token, auth('api')->user());
     }

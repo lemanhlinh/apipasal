@@ -10,6 +10,8 @@ use App\Models\Regencies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Spatie\Permission\Models\Role;
+use App\Models\Role as RoleModel;
 
 class RegenciesController extends Controller
 {
@@ -21,7 +23,11 @@ class RegenciesController extends Controller
     public function index()
     {
         $regencies = Regencies::with(['department'])->orderBy('id', 'DESC')->get();
-        return $regencies;
+        return response()->json([
+            'success' => true,
+            'data' => $regencies,
+            'message' => 'Lấy dữ liệu thành công'
+        ]);
     }
 
     /**
@@ -42,17 +48,20 @@ class RegenciesController extends Controller
      */
     public function store(Request $request)
     {
-        DB::beginTransaction();
-        try {
+
             $title = $request->input('title');
             $code = $request->input('code');
-            $department_id = $request->input('department_id');
             $permission = $request->input('permission');
+            $role = Role::where('name', $permission['code'])->first();
+
+            $role_permission = RoleModel::where('role_id', $role->id)->get();
+
+            foreach($role_permission as $item){
+                $role_permission_id[] = $item->permission_id;
+            }
             Regencies::create([
                 'title' => $title,
                 'code' =>  $code,
-                'department_id' => $department_id['id'],
-                'permission' => $permission,
                 'active' => 1
             ]);
 
@@ -61,18 +70,7 @@ class RegenciesController extends Controller
                 'error' => false,
                 'result' => 'Đã thêm mới chức vụ mới',
             ));
-        } catch (\Exception $ex) {
-            DB::rollBack();
-            \Log::info([
-                'message' => $ex->getMessage(),
-                'line' => __LINE__,
-                'method' => __METHOD__
-            ]);
-            return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được chức vụ',
-            ));
-        }
+        
     }
 
     /**
