@@ -55,10 +55,10 @@ class PermissionController extends Controller
     
         try {
             foreach ($permissions as $item) {
-                $edit = $item['role']['edit'];
-                $create = $item['role']['create'];
-                $delete = $item['role']['delete'];
-                $view = $item['role']['view'];
+                $edit = @$item['role']['edit'];
+                $create = @$item['role']['create'];
+                $delete = @$item['role']['delete'];
+                $view = @$item['role']['view'];
     
                 $edit_task = 'edit' . '_' . $item['module'];
                 $create_task = 'create' . '_' . $item['module'];
