@@ -33,35 +33,20 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
-
         $remember = $request->has('remember');
-
-
-
         if (!$token = auth('api')->attempt($credentials, $remember)) {
+
             return response()->json(['message' => 'Wrong email or password'], 401);
         }
 
-        $user = Auth::user();  
-        $role_permission = RoleModel::where('role_id', $user->regency_id)->get();
-        $permissions = PermissionModel::whereIn('id', $role_permission->pluck('permission_id'))->get();
-        $allPermissionNames = $permissions->pluck('name')->toArray();
-        $regency = Regencies::where('id', $user->regency_id)->first();
-        $role = Role::updateOrCreate([
-            'name' => $regency->code,
-            'display_name' => $regency->title,
-            'guard_name' => 'api',
-        ]);
-        $role->givePermissionTo($allPermissionNames);
-        if ($user) {
+        $user = Auth::user()->load('regency');
+        $role = Role::where('name', $user->regency->code)->first();
+        if ($role) {
+            $permissions = PermissionModel::whereIn('id', RoleModel::where('role_id', $role->id)->pluck('permission_id'))->pluck('name')->toArray();
+            $user->syncRoles([]);
             $user->assignRole($role);
+            $role->syncPermissions($permissions);
         }
-
-
-        //        if (! auth('api')->user()->isActive()) {
-        //            return response()->json(['message' => 'Account is not active'], 401);
-        //        }
-
 
         return $this->respondWithUserToken($token, auth('api')->user());
     }

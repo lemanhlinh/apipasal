@@ -36,7 +36,7 @@ class PermissionController extends Controller
     {
         $regency_code = request()->regency_code;
         $role = Role::where('name', $regency_code)->first();
-
+        
         $list_permission = Permission::orderBy('display_name', 'ASC')->with('role_permission', function ($query) use ($role) {
             $query->where('role_id', $role->id);
         })->get();

@@ -11,6 +11,11 @@ class Regencies extends Model
 
     protected $guarded = ['id'];
 
+    protected $fillable = [
+        'title',
+        'code',
+        'active'
+    ];
     public function department()
     {
         return $this->hasOne(Department::class, 'id', 'department_id');

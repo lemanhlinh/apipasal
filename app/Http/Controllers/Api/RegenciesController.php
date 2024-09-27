@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Spatie\Permission\Models\Role;
 use App\Models\Role as RoleModel;
+use App\Models\User;
+use App\Models\Permission as PermissionModel;
+use App\Services\System\RolePermission;
 
 class RegenciesController extends Controller
 {
@@ -20,6 +23,13 @@ class RegenciesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    private $rolePermission;
+
+    public function __construct(RolePermission $rolePermission)
+    { 
+        $this->rolePermission = $rolePermission;  
+    }
+
     public function index()
     {
         $regencies = Regencies::with(['department'])->orderBy('id', 'DESC')->get();
@@ -48,24 +58,63 @@ class RegenciesController extends Controller
      */
     public function store(Request $request)
     {
-
             $title = $request->input('title');
             $code = $request->input('code');
-            $permission = $request->input('permission');
-            $role = Role::where('name', $permission['code'])->first();
-
-            $role_permission = RoleModel::where('role_id', $role->id)->get();
-
-            foreach($role_permission as $item){
-                $role_permission_id[] = $item->permission_id;
+            $check_exists = Regencies::where('code', $code)->first();
+            if($check_exists) {
+                return response()->json(array(
+                    'success' => false,
+                    'message' => 'Mã chức vụ đã tồn tại',
+                ));
             }
-            Regencies::create([
-                'title' => $title,
-                'code' =>  $code,
-                'active' => 1
-            ]);
+            if(@$request->input('permission'))
+                $permission = $request->input('permission');
 
-            DB::commit();
+            if(@$permission) {
+                $role = Role::where('name', $permission['code'])->first();
+                $role_permission = RoleModel::where('role_id', $role->id)->get();
+
+                $regency = Regencies::create([
+                    'title' => $title,
+                    'code' =>  $code,
+                    'active' => 1
+                ]);
+
+                $new_role = Role::updateOrCreate(
+                    ['name' => $regency->code],
+                    [
+                        'display_name' => $regency->title,
+                        'guard_name' => 'api',
+                    ]
+                );
+                if($role_permission) {
+                    foreach ($role_permission as $item) {
+                        RoleModel::firstOrCreate(
+                            [
+                                'permission_id' => $item->permission_id,
+                                'role_id' => $new_role->id
+                            ],
+                            [
+                                'permission_id' => $item->permission_id,
+                                'role_id' => $new_role->id
+                            ]
+                        );
+                    }
+                }
+            } else {
+                $regency = Regencies::create([
+                    'title' => $title,
+                    'code' =>  $code,
+                    'active' => 1
+                ]);
+
+                $role = Role::updateOrCreate([
+                    'name' => $regency->code,
+                    'display_name' => $regency->title,
+                    'guard_name' => 'api',
+                ]);
+            }
+
             return response()->json(array(
                 'error' => false,
                 'result' => 'Đã thêm mới chức vụ mới',

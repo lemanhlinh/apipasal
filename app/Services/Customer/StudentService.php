@@ -4,7 +4,6 @@ namespace App\Services\Customer;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 
 use App\Models\User;
 use App\Models\Customer\Customer;
@@ -35,28 +34,18 @@ class StudentService
     {
         $user = Auth::user();
 
-        $customer = Customer::find($request['customer_id']);
-
-        $customer->update([
-            'birthday' => $request['birthday'],
-            'active' => 2,
-            'active_date' => null
-        ]);
-
-        CustomerSegment::find($request['segment_id'])->update([
-            'birthday' => @$request['segment_birthday'] ? Carbon::parse($request['segment_birthday'])->format('Y-m-d') : NULL,
-            'telephone_extra' => @$request['telephone_extra'] ? $request['telephone_extra'] : NULL,
+        CustomerSegment::find($request->customer_segment_id)->update([
+            'birth' => $request->birth ? Carbon::parse($request->birth)->format('Y-m-d') : NULL,
+            'telephone_extra' => $request->telephone_extra ? $request->telephone_extra : NULL,
         ]);
 
         $student = Student::updateOrCreate([
-            'customer_id' => $request['customer_id'],
-            'customer_segment_id' => $request['segment_id']
+            'customer_id' => $request->customer_id,
+            'customer_segment_id' => $request->customer_segment_id
         ]);
 
-        foreach ($request['contracts'] as $contract) {
-            $contract['student_id'] = $student->id;
-            $this->contractService->store($contract);
-        }
+        $request->student_id = $student->id;
+        $this->contractService->store($request);
 
         $this->admissionService->store($request);
 
@@ -119,7 +108,7 @@ class StudentService
         $college = 0;
         $working = 0;
         $days = 0;
-        $contractAmount = 0;
+        $contract = 0;
 
         foreach ($students as $student) {
             $days += Carbon::parse($student->created_at)->diffInDays(Carbon::parse($student->customer->created_at));
@@ -142,8 +131,8 @@ class StudentService
                     break;
             }
 
-            foreach ($student->contracts as $contract) {
-                $contractAmount += $contract->amount - $contract->amount_offer - $contract->amount_special - $contract->amount_promotion;
+            foreach ($student->cotracts as $contract) {
+                $contract += $contract->amount;
             }
         }
 
@@ -156,7 +145,7 @@ class StudentService
                 'college' => $college,
                 'working' => $working,
 
-                'contract' => $contractAmount,
+                'contract' => $contract,
                 'days' => round($days / count($students), 1)
             ]
         );

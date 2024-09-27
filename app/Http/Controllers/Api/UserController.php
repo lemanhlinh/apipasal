@@ -9,9 +9,8 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
+use App\Services\System\RolePermission;
+
 
 class UserController extends Controller
 {
@@ -20,6 +19,13 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    private $rolePermission;
+
+    public function __construct(RolePermission $rolePermission)
+    {
+        $this->rolePermission = $rolePermission;
+    }
+
     public function index()
     {
         $users = User::with(['department','regency'])->orderBy('id', 'DESC')->get();
@@ -165,6 +171,8 @@ class UserController extends Controller
                 'used_time' => now(),
                 'active' => 1
             ]);
+
+            $this->rolePermission->applyRolePermissionToUser($id);
 
             DB::commit();
             return response()->json(array(
