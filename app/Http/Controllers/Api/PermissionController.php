@@ -36,7 +36,7 @@ class PermissionController extends Controller
     {
         $regency_code = request()->regency_code;
         $role = Role::where('name', $regency_code)->first();
-
+        
         $list_permission = Permission::orderBy('display_name', 'ASC')->with('role_permission', function ($query) use ($role) {
             $query->where('role_id', $role->id);
         })->get();
@@ -48,17 +48,17 @@ class PermissionController extends Controller
     {
         $regency_code = request()->regency_code;
         $regency = Regencies::where('code', $regency_code)->first();
-        $role_id = Role::where('name', $regency_code)->first()->id;
+        $role_code = Role::where('name', $regency_code)->first()->name;
         $permissions = request()->permissions;
     
         DB::beginTransaction();
     
         try {
             foreach ($permissions as $item) {
-                $edit = $item['role']['edit'];
-                $create = $item['role']['create'];
-                $delete = $item['role']['delete'];
-                $view = $item['role']['view'];
+                $edit = @$item['role']['edit'];
+                $create = @$item['role']['create'];
+                $delete = @$item['role']['delete'];
+                $view = @$item['role']['view'];
     
                 $edit_task = 'edit' . '_' . $item['module'];
                 $create_task = 'create' . '_' . $item['module'];
@@ -72,7 +72,7 @@ class PermissionController extends Controller
                     $view_task,
                 ];
                 $array_permission = Permission::whereIn('name', $array_task)->get();
-                $existingPermissions = RoleModel::where('role_id', $role_id)->pluck('permission_id')->toArray();
+                $existingPermissions = RoleModel::where('role_code', $role_code)->pluck('permission_id')->toArray();
                 $permissionsToAdd = [];
                 $permissionsToRemove = [];
     
@@ -111,18 +111,23 @@ class PermissionController extends Controller
                 }
     
                 if (!empty($permissionsToAdd)) {
-                    $dataToAdd = array_map(function($permissionId) use ($role_id) {
-                        return ['role_id' => $role_id, 'permission_id' => $permissionId];
+                    $dataToAdd = array_map(function($permissionId) use ($role_code) {
+                        return [
+                            'role_code' => $role_code, 
+                            'permission_id' => $permissionId,
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ];
                     }, $permissionsToAdd);
                     RoleModel::insert($dataToAdd);
                 }
     
                 if (!empty($permissionsToRemove)) {
-                    RoleModel::where('role_id', $role_id)->whereIn('permission_id', $permissionsToRemove)->delete();
+                    RoleModel::where('role_code', $role_code)->whereIn('permission_id', $permissionsToRemove)->delete();
                 }
 
                 $user = User::where('regency_id', $regency->id)->first();
-                $role_permission = RoleModel::where('role_id', $role_id)->get();
+                $role_permission = RoleModel::where('role_id', $role_code)->get();
                 $permissions = Permission::whereIn('id', $role_permission->pluck('permission_id'))->get();
                 $allPermissionNames = $permissions->pluck('name')->toArray();
                 $role = Role::updateOrCreate([

@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Department;
 
 class CampusesController extends Controller
 {
@@ -20,6 +22,24 @@ class CampusesController extends Controller
      */
     public function index()
     {
+
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if($user->department_id){
+
+            $departmentDetail = Department::find($user->department_id);
+            $department_id = $departmentDetail->id;
+            $campuses = Campuses::with('campusDepartment', function($query) use ($department_id) {
+                $query->where('department_id', $department_id);
+            })->orderBy('id', 'DESC')->get();
+            dd($campuses);
+
+        }
+        
         $campuses = Campuses::with(['classrooms' => function($q){
             $q->select('id','title','campuses_id');
         }])->with(['departments' => function($q){

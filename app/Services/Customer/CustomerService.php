@@ -66,10 +66,10 @@ class CustomerService
                 break;
             case Segment::COLLEGE:
                 $segmentDetail[] = [
-                    'district_id' => @$request->segmentInfo['district_id'],
-                    'market_id' => @$request->segmentInfo['market_id'],
-                    'college_year' => @$request->segmentInfo['college_year'],
-                    'college_major' => @$request->segmentInfomajor['college_major'] ?: 0,
+                    'district_id' => $request->segmentInfo['district_id'],
+                    'market_id' => $request->segmentInfo['market_id'],
+                    'college_year' => $request->segmentInfo['college_year'],
+                    'college_major' => $request->segmentInfomajor['college_major'],
                 ];
                 break;
             case Segment::WORKING:
@@ -91,7 +91,7 @@ class CustomerService
             'city_id' => $request->city,
             'district_id' => $request->district,
             'address' => $request->address,
-            'segment_id' => $request->segment_id,
+            'segment' => $request->segment,
             'segment_detail' => '[]',
             'source' => $request->source,
             'source_detail' => $request->source_detail,
@@ -100,7 +100,7 @@ class CustomerService
             'consulting' => $request->consulting,
             'potential' => $request->potential,
             'date_registration' => Carbon::parse($request->date_registration)->format('Y-m-d'),
-            'product_category_id' => $request->product_category_id,
+            'product_category_id' => $request->product_category,
             'product_id' => $request->product,
             'contract' => $request->contract ? 1 : 0,
             'manage_id' => $user->id,

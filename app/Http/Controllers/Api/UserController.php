@@ -98,8 +98,8 @@ class UserController extends Controller
 
             DB::commit();
             return response()->json(array(
-                'error' => false,
-                'result' => 'Đã thêm mới user',
+                'success' => false,
+                'message' => 'Đã thêm mới user',
             ));
         } catch (\Exception $ex) {
             DB::rollBack();
@@ -109,8 +109,8 @@ class UserController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được user',
+                'success' => true,
+                'message' => 'Chưa thêm được user',
             ));
         }
     }
@@ -176,8 +176,8 @@ class UserController extends Controller
 
             DB::commit();
             return response()->json(array(
-                'error' => false,
-                'result' => 'Cập nhật thành công user',
+                'success' => false,
+                'message' => 'Cập nhật thành công user',
             ));
         } catch (\Exception $exception) {
             \Log::info([
@@ -186,8 +186,32 @@ class UserController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
+                'success' => true,
+                'message' => 'Chưa cập nhật được user',
+            ));
+        }
+    }
+
+    public function delete ($id) {
+        DB::beginTransaction();
+        try {
+            $user = User::findOrFail($id);
+            $user->delete();
+            DB::commit();
+            return response()->json(array(
+                'success' => true,
+                'message' => 'Đã xóa user',
+            ));
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            \Log::info([
+                'message' => $exception->getMessage(),
+                'line' => __LINE__,
+                'method' => __METHOD__
+            ]);
+            return response()->json(array(
                 'error' => true,
-                'result' => 'Chưa cập nhật được user',
+                'message' => 'Chưa xóa được user ' . $exception->getMessage(),
             ));
         }
     }
