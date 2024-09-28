@@ -51,11 +51,11 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
             Route::post('active-trung-tam/{id}', 'CampusesController@changeActive');
         });
 
-        Route::group(['middleware' => ['permission:view_departments']], function () {
+        // Route::group(['middleware' => ['permission:view_departments']], function () {
             Route::post('phong-ban', 'DepartmentController@index');
             Route::post('phong-ban-all', 'DepartmentController@listAll');
             Route::post('phong-ban-phu/{id}', 'DepartmentController@listSub');
-        });
+        // });
 
         Route::post('tao-phong-ban', 'DepartmentController@store')->middleware('permission:create_departments');
 
@@ -64,28 +64,28 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
             Route::post('update-phong-ban/{id}', 'DepartmentController@update');
         });
 
-        Route::group(['middleware' => ['permission:view_regencies']], function () {
+        // Route::group(['middleware' => ['permission:view_regencies']], function () {
             Route::post('chuc-vu', [RegenciesController::class, 'index']);
             Route::post('tao-chuc-vu', [RegenciesController::class, 'store']);
-        });
+        // });
 
-        Route::group(['middleware' => ['permission:edit_regencies']], function () {
+        // Route::group(['middleware' => ['permission:edit_regencies']], function () {
             Route::post('active-chuc-vu/{id}', [RegenciesController::class, 'changeActive']);
             Route::post('update-chuc-vu/{id}', [RegenciesController::class, 'update']);
-        });
+        // });
 
-        Route::group(['middleware' => ['permission:delete_regencies']], function () {
+        // Route::group(['middleware' => ['permission:delete_regencies']], function () {
             Route::post('delete-chuc-vu/{id}', [RegenciesController::class, 'delete']);
-        });
+        // });
 
-        Route::group(['middleware' => ['permission:view_permissions']], function () {
+        // Route::group(['middleware' => ['permission:view_permissions']], function () {
             Route::post('all-permission', [PermissionController::class, 'index']);
             Route::post('role-permission', [PermissionController::class, 'rolePermission']);
-        });
+        // });
 
-        Route::group(['middleware' => ['permission:view_permissions']], function () {
+        // Route::group(['middleware' => ['permission:view_permissions']], function () {
             Route::post('save-permission', [PermissionController::class, 'savePermission']);
-        });
+        // });
 
         Route::group(['middleware' => ['permission:delete_permissions']], function () {
             Route::post('delete-permission', [PermissionController::class, 'deletePermission']);

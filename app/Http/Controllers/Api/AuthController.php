@@ -35,19 +35,18 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->has('remember');
         if (!$token = auth('api')->attempt($credentials, $remember)) {
-
+            $user = Auth::user()->load('regency');
+            $role = Role::where('name', $user->regency->code)->first();
+            if ($role) {
+                $permissions = PermissionModel::whereIn('id', RoleModel::where('role_code', $user->regency->code)->pluck('permission_id'))->pluck('name')->toArray();
+                $user->syncRoles([]);
+                $user->assignRole($role);
+                $role->syncPermissions($permissions);
+            }
     
             return response()->json(['message' => 'Wrong email or password'], 401);
         }
-        $user = Auth::user()->load('regency');
-        $role = Role::where('name', $user->regency->code)->first();
-        // dd($role);
-        if ($role) {
-            $permissions = PermissionModel::whereIn('id', RoleModel::where('role_code', $user->regency->code)->pluck('permission_id'))->pluck('name')->toArray();
-            $user->syncRoles([]);
-            $user->assignRole($role);
-            $role->syncPermissions($permissions);
-        }
+
 
         return $this->respondWithUserToken($token, auth('api')->user());
     }

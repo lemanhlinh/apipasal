@@ -178,9 +178,10 @@ class RegenciesController extends Controller
                 $newRegency = Regencies::create([
                     'title' => $title,
                     'code' => $code,
+                    'active' => 1
                 ]);
             
-                Role::create([
+                $newRole = Role::create([
                     'name' => $newRegency->code,
                     'display_name' => $newRegency->title,
                     'guard_name' => 'api',
@@ -200,14 +201,11 @@ class RegenciesController extends Controller
                     RoleModel::where('role_id', @$current_role->id)->delete();
 
                     foreach ($role_permission as $item) {
-                        RoleModel::firstOrCreate(
+                        RoleModel::create(
                             [
                                 'permission_id' => $item->permission_id,
-                                'role_id' => $current_role->id
-                            ],
-                            [
-                                'permission_id' => $item->permission_id,
-                                'role_id' => $current_role->id
+                                'role_id' => $newRole->id,
+                                'role_code' => $newRole->name
                             ]
                         );
                     }

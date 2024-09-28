@@ -28,7 +28,35 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::with(['department','regency'])->orderBy('id', 'DESC')->get();
+        $birthday = request()->input('birthday');
+        $selectedDepartment = request()->input('selectedDepartment');
+        $selectedRegency = request()->input('selectedRegency');
+        $status = request()->input('status');
+
+        $query = User::with(['department','regency'])->orderBy('id', 'DESC');
+
+        if($birthday) {
+            $birthday = date('Y-m-d', strtotime($birthday));
+            $query->where('birthday', 'like', '%' . $birthday . '%');
+        }
+
+        if($selectedDepartment) {
+            $selectedDepartment = $selectedDepartment['id'];
+            $query->where('department_id', $selectedDepartment);
+        }
+
+        if($selectedRegency) {
+            $selectedDepartment = $selectedRegency['id'];
+            $query->where('regency_id', $selectedRegency);
+        }
+
+        if($status) {
+            $query->where('active', $status['id']);
+        }
+
+
+        $users = $query->get();
+
         foreach ($users as $user){
             if ($user->department){
                 $user->department->title_rename = $user->department->title;
