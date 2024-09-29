@@ -52,6 +52,10 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
             Route::post('active-trung-tam/{id}', 'CampusesController@changeActive');
         });
 
+        Route::group(['middleware' => ['permission:delete_campuses']], function () {
+            Route::post('delete-trung-tam/{id}', 'CampusesController@delete');
+        });
+
         // Route::group(['middleware' => ['permission:view_departments']], function () {
             Route::post('phong-ban', 'DepartmentController@index');
             Route::post('phong-ban-all', 'DepartmentController@listAll');

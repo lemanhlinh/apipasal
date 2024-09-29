@@ -220,4 +220,28 @@ class CampusesController extends Controller
             'message' => trans('message.change_active_article_success')
         ];
     }
+    public function delete($id)
+    {
+        DB::beginTransaction();
+        try {
+            $campuses = Campuses::findOrFail($id);
+            $campuses->delete();
+            DB::commit();
+            return response()->json(array(
+                'success' => true,
+                'message' => 'Đã xóa trung tâm',
+            ));
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            \Log::info([
+                'message' => $ex->getMessage(),
+                'line' => __LINE__,
+                'method' => __METHOD__
+            ]);
+            return response()->json(array(
+                'success' => false,
+                'message' => 'Chưa xóa được trung tâm',
+            ));
+        }
+    }
 }
