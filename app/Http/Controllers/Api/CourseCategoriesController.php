@@ -52,8 +52,8 @@ class CourseCategoriesController extends Controller
 
             DB::commit();
             return response()->json(array(
-                'error' => false,
-                'result' => 'Đã thêm mới nhóm khóa học',
+                'success' => true,
+                'message' => 'Đã thêm mới nhóm khóa học',
             ));
         } catch (\Exception $ex) {
             DB::rollBack();
@@ -63,8 +63,8 @@ class CourseCategoriesController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
-                'error' => false,
-                'result' => 'Chưa thêm được nhóm khóa học',
+                'success' => false,
+                'message' => 'Chưa thêm được nhóm khóa học',
             ));
         }
     }
@@ -122,6 +122,30 @@ class CourseCategoriesController extends Controller
         }
     }
 
+    public function delete($id)
+    {
+        DB::beginTransaction();
+        try {
+            $cat = CourseCategories::findOrFail($id);
+            $cat->delete();
+            DB::commit();
+            return response()->json(array(
+                'success' => true,
+                'message' => 'Đã xóa nhóm khóa học',
+            ));
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            \Log::info([
+                'message' => $ex->getMessage(),
+                'line' => __LINE__,
+                'method' => __METHOD__
+            ]);
+            return response()->json(array(
+                'success' => false,
+                'message' => 'Chưa xóa được nhóm khóa học',
+            ));
+        }
+    }
     /**
      * Remove the specified resource from storage.
      *
@@ -132,4 +156,15 @@ class CourseCategoriesController extends Controller
     {
         //
     }
+
+    public function changeActive($id)
+    {
+        $courseCategory = CourseCategories::findOrFail($id);
+        $courseCategory->update(['active' => !$courseCategory->active]);
+        return [
+            'status' => true,
+            'message' => 'Cập nhật trạng thái thành công'
+        ];
+    }
+
 }
