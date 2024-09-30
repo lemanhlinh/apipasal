@@ -81,6 +81,9 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
 
         Route::group(['middleware' => ['permission:view_regencies']], function () {
             Route::post('chuc-vu', [RegenciesController::class, 'index']);
+        });
+
+        Route::group(['middleware' => ['permission:create_regencies']], function () {
             Route::post('tao-chuc-vu', [RegenciesController::class, 'store']);
         });
         Route::group(['middleware' => ['permission:edit_regencies']], function () {
