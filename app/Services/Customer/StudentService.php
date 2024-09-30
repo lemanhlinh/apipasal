@@ -4,7 +4,6 @@ namespace App\Services\Customer;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 
 use App\Models\User;
 use App\Models\Customer\Customer;
@@ -53,10 +52,8 @@ class StudentService
             'customer_segment_id' => $request['customer_segment_id']
         ]);
 
-        foreach ($request['contracts'] as $contract) {
-            $contract['student_id'] = $student->id;
-            $this->contractService->store($contract);
-        }
+        $request->student_id = $student->id;
+        $this->contractService->store($request);
 
         $this->admissionService->store($request);
 
@@ -119,7 +116,7 @@ class StudentService
         $college = 0;
         $working = 0;
         $days = 0;
-        $contractAmount = 0;
+        $contract = 0;
 
         foreach ($students as $student) {
             $days += Carbon::parse($student->created_at)->diffInDays(Carbon::parse($student->customer->created_at));
@@ -142,8 +139,8 @@ class StudentService
                     break;
             }
 
-            foreach ($student->contracts as $contract) {
-                $contractAmount += $contract->amount - $contract->amount_offer - $contract->amount_special - $contract->amount_promotion;
+            foreach ($student->cotracts as $contract) {
+                $contract += $contract->amount;
             }
         }
 
@@ -156,7 +153,7 @@ class StudentService
                 'college' => $college,
                 'working' => $working,
 
-                'contract' => $contractAmount,
+                'contract' => $contract,
                 'days' => round($days / count($students), 1)
             ]
         );

@@ -10,6 +10,11 @@ use App\Models\Regencies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Spatie\Permission\Models\Role;
+use App\Models\Role as RoleModel;
+use App\Models\User;
+use App\Models\Permission as PermissionModel;
+use App\Services\System\RolePermission;
 
 class RegenciesController extends Controller
 {
@@ -18,10 +23,21 @@ class RegenciesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    private $rolePermission;
+
+    public function __construct(RolePermission $rolePermission)
+    {
+        $this->rolePermission = $rolePermission;
+    }
+
     public function index()
     {
         $regencies = Regencies::with(['department'])->orderBy('id', 'DESC')->get();
-        return $regencies;
+        return response()->json([
+            'success' => true,
+            'data' => $regencies,
+            'message' => 'Lấy dữ liệu thành công'
+        ]);
     }
 
     /**
@@ -42,37 +58,70 @@ class RegenciesController extends Controller
      */
     public function store(Request $request)
     {
-        DB::beginTransaction();
-        try {
-            $title = $request->input('title');
-            $code = $request->input('code');
-            $department_id = $request->input('department_id');
+        $title = $request->input('title');
+        $code = $request->input('code');
+        $check_exists = Regencies::where('code', $code)->first();
+        if ($check_exists) {
+            return response()->json(array(
+                'success' => false,
+                'message' => 'Mã chức vụ đã tồn tại',
+            ));
+        }
+        if (@$request->input('permission'))
             $permission = $request->input('permission');
-            Regencies::create([
+
+        if (@$permission) {
+            $role = Role::where('name', $permission['code'])->first();
+            $role_permission = RoleModel::where('role_code', $permission['code'])->get();
+
+            $new_regency = Regencies::create([
                 'title' => $title,
                 'code' =>  $code,
-                'department_id' => $department_id['id'],
-                'permission' => $permission,
                 'active' => 1
             ]);
 
-            DB::commit();
-            return response()->json(array(
-                'error' => false,
-                'result' => 'Đã thêm mới chức vụ mới',
-            ));
-        } catch (\Exception $ex) {
-            DB::rollBack();
-            \Log::info([
-                'message' => $ex->getMessage(),
-                'line' => __LINE__,
-                'method' => __METHOD__
+            $new_role = Role::updateOrCreate(
+                ['name' => $new_regency->code],
+                [
+                    'display_name' => $new_regency->title,
+                    'guard_name' => 'api',
+                ]
+            );
+            if ($role_permission) {
+                foreach ($role_permission as $item) {
+                    RoleModel::firstOrCreate(
+                        [
+                            'permission_id' => $item->permission_id,
+                            'role_code' => $new_regency->code,
+                            'role_id' => $new_role->id,
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ],
+                        [
+                            'permission_id' => $item->permission_id,
+                            'role_code' => $new_regency->code
+                        ]
+                    );
+                }
+            }
+        } else {
+            $new_regency = Regencies::create([
+                'title' => $title,
+                'code' =>  $code,
+                'active' => 1
             ]);
-            return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được chức vụ',
-            ));
+
+            $role = Role::updateOrCreate([
+                'name' => $new_regency->code,
+                'display_name' => $new_regency->title,
+                'guard_name' => 'api',
+            ]);
         }
+
+        return response()->json(array(
+            'success' => true,
+            'message' => 'Đã thêm mới chức vụ mới',
+        ));
     }
 
     /**
@@ -106,37 +155,86 @@ class RegenciesController extends Controller
      */
     public function update(Request $request, $id)
     {
+
         DB::beginTransaction();
         try {
-            $title = $request->input('title');
+            $id = $request->input('id');
             $code = $request->input('code');
-            $department_id = $request->input('department_id');
-            $permission = $request->input('permission');
-            $regencies = Regencies::findOrFail($id);
-            $regencies->update([
-                'title' => $title,
-                'code' =>  $code,
-                'department_id' => $department_id,
-                'permission' => $permission,
-                'active' => 1
-            ]);
+            $title = $request->input('title');
 
+            $check_exists = Regencies::where('code', $code)->where('id', '!=', $id)->first();
+            if ($check_exists) {
+                return response()->json(array(
+                    'success' => false,
+                    'message' => 'Mã chức vụ đã tồn tại',
+                ));
+            }
+            
+            $regency = Regencies::find($id);
+
+            if ($regency) {
+                Role::where('name', $regency->code)->delete();
+            
+                $newRegency = Regencies::create([
+                    'title' => $title,
+                    'code' => $code,
+                    'active' => 1
+                ]);
+            
+                $newRole = Role::create([
+                    'name' => $newRegency->code,
+                    'display_name' => $newRegency->title,
+                    'guard_name' => 'api',
+                ]);
+            
+                $regency->delete();
+            }
+
+            if (@$request->input('permission'))
+                $permission = $request->input('permission');
+
+            if (@$permission) {
+                $current_role = Role::where('name', $code)->first();
+                $role_clone = Role::where('name', $permission['code'])->first();
+                $role_permission = RoleModel::where('role_id', $role_clone->id)->get();
+                if (!empty($role_permission)) {
+                    RoleModel::where('role_id', @$current_role->id)->delete();
+
+                    foreach ($role_permission as $item) {
+                        RoleModel::create(
+                            [
+                                'permission_id' => $item->permission_id,
+                                'role_id' => $newRole->id,
+                                'role_code' => $newRole->name
+                            ]
+                        );
+                    }
+                }
+            }
             DB::commit();
             return response()->json(array(
-                'error' => true,
-                'result' => 'Cập nhật thành công chức vụ',
+                'success' => true,
+                'message' => 'Cập nhật chức vụ thành công',
             ));
-        } catch (\Exception $exception) {
-            \Log::info([
-                'message' => $exception->getMessage(),
-                'line' => __LINE__,
-                'method' => __METHOD__
-            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa cập nhật được chức vụ',
+                'success' => false,
+                'message' => 'Có lỗi xảy ra ' . $e->getMessage(),
             ));
         }
+
+    }
+
+    public function delete() {
+        $id = request()->input('id');
+        $regency = Regencies::find($id);
+        Role::where('name', $regency->code)->delete();
+        $regency->delete();
+        return response()->json(array(
+            'success' => true,
+            'message' => 'Xóa chức vụ thành công',
+        ));
     }
 
     /**

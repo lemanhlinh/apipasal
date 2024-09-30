@@ -4,6 +4,10 @@ use App\Http\Controllers\Api\BusinessMarketController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+
+use App\Http\Controllers\Api\RegenciesController;
+
+
 use App\Http\Controllers\Api\BusinessSpendingController;
 use App\Http\Controllers\Api\BusinessPolicyController;
 use App\Http\Controllers\Api\BusinessPartnerController;
@@ -14,6 +18,11 @@ use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Customer\DemoController;
 use App\Http\Controllers\Api\Customer\StudentController;
 use App\Http\Controllers\Api\Customer\ContractController;
+
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\PermissionController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -42,22 +51,52 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
             Route::post('active-trung-tam/{id}', 'CampusesController@changeActive');
         });
 
-        Route::post('phong-ban', 'DepartmentController@index');
-        Route::post('phong-ban-all', 'DepartmentController@listAll');
-        Route::post('phong-ban-phu/{id}', 'DepartmentController@listSub');
-        Route::post('active-phong-ban/{id}', 'DepartmentController@changeActive');
-        Route::post('tao-phong-ban', 'DepartmentController@store');
-        Route::post('update-phong-ban/{id}', 'DepartmentController@update');
+        // Route::group(['middleware' => ['permission:view_departments']], function () {
+            Route::post('phong-ban', 'DepartmentController@index');
+            Route::post('phong-ban-all', 'DepartmentController@listAll');
+            Route::post('phong-ban-phu/{id}', 'DepartmentController@listSub');
+        // });
 
-        Route::post('chuc-vu', 'RegenciesController@index');
-        Route::post('tao-chuc-vu', 'RegenciesController@store');
-        Route::post('active-chuc-vu/{id}', 'RegenciesController@changeActive');
-        Route::post('update-chuc-vu/{id}', 'RegenciesController@update');
+        Route::post('tao-phong-ban', 'DepartmentController@store')->middleware('permission:create_departments');
 
-        Route::post('nhan-vien', 'UserController@index');
-        Route::post('tao-nhan-vien', 'UserController@store');
-        Route::post('active-nhan-vien/{id}', 'UserController@changeActive');
-        Route::post('update-nhan-vien/{id}', 'UserController@update');
+        Route::group(['middleware' => ['permission:edit_departments']], function () {
+            Route::post('active-phong-ban/{id}', 'DepartmentController@changeActive');
+            Route::post('update-phong-ban/{id}', 'DepartmentController@update');
+        });
+
+        // Route::group(['middleware' => ['permission:view_regencies']], function () {
+            Route::post('chuc-vu', [RegenciesController::class, 'index']);
+            Route::post('tao-chuc-vu', [RegenciesController::class, 'store']);
+        // });
+
+        // Route::group(['middleware' => ['permission:edit_regencies']], function () {
+            Route::post('active-chuc-vu/{id}', [RegenciesController::class, 'changeActive']);
+            Route::post('update-chuc-vu/{id}', [RegenciesController::class, 'update']);
+        // });
+
+        // Route::group(['middleware' => ['permission:delete_regencies']], function () {
+            Route::post('delete-chuc-vu/{id}', [RegenciesController::class, 'delete']);
+        // });
+
+        // Route::group(['middleware' => ['permission:view_permissions']], function () {
+            Route::post('all-permission', [PermissionController::class, 'index']);
+            Route::post('role-permission', [PermissionController::class, 'rolePermission']);
+        // });
+
+        // Route::group(['middleware' => ['permission:view_permissions']], function () {
+            Route::post('save-permission', [PermissionController::class, 'savePermission']);
+        // });
+
+        Route::group(['middleware' => ['permission:delete_permissions']], function () {
+            Route::post('delete-permission', [PermissionController::class, 'deletePermission']);
+        });
+        Route::post('clone-permission', [PermissionController::class, 'clonePermission']);
+
+        Route::post('nhan-vien', [UserController::class, 'index']);
+        Route::post('tao-nhan-vien', [UserController::class, 'store']);
+        Route::post('active-nhan-vien/{id}', [UserController::class, 'changeActive']);
+        Route::post('update-nhan-vien/{id}', [UserController::class, 'update']);
+        Route::post('xoa-nhan-vien/{id}', [UserController::class, 'delete']);
 
         Route::post('nhom-khoa-hoc', 'CourseCategoriesController@index');
         Route::post('tao-nhom-khoa-hoc', 'CourseCategoriesController@store');
@@ -164,5 +203,4 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('danh-sach-tinh-thanh', 'CitiesController@index');
         Route::post('danh-sach-quan-huyen', 'DistrictsController@index');
     });
-
 });

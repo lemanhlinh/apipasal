@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Department;
 
 class CampusesController extends Controller
 {
@@ -20,11 +22,31 @@ class CampusesController extends Controller
      */
     public function index()
     {
-        $campuses = Campuses::with(['classrooms' => function($q){
-            $q->select('id','title','campuses_id');
-        }])->with(['departments' => function($q){
-            $q->withCount('users');
-        }])->orderBy('id', 'DESC')->get();
+
+        $user = Auth::user();
+        $filter = request()->input('filter');
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if ($user->department_id && $filter) {
+
+            $departmentDetail = Department::find($user->department_id);
+            $department_id = $departmentDetail->id;
+
+            $campuses = Campuses::whereHas('campusDepartment', function ($query) use ($department_id) {
+                $query->where('department_id', $department_id);
+            })->with('campusDepartment')->with('classrooms')->orderBy('id', 'DESC')->get();
+        } else {
+            $campuses = Campuses::with(['classrooms' => function ($q) {
+                $q->select('id', 'title', 'campuses_id');
+            }])->with(['departments' => function ($q) {
+                $q->withCount('users');
+            }])->orderBy('id', 'DESC')->get();
+        }
+
+
 
         foreach ($campuses as $campus) {
             $totalUsersCount = 0;
@@ -70,7 +92,7 @@ class CampusesController extends Controller
             ]);
             $classroom = $request->input('classrooms');
 
-            foreach ($classroom as $class){
+            foreach ($classroom as $class) {
                 $campuses->classrooms()->create([
                     'title' => $class['title']
                 ]);

@@ -3,27 +3,21 @@
 namespace App\Services\Customer;
 
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
+use Illuminate\Support\Carbon; 
 
 use App\Models\User;
 use App\Models\Customer\Contract;
 use App\Models\Customer\ContractStatus;
 
 use App\Services\Customer\AdmissionService;
-use App\Services\Customer\ContractBillService;
-
 
 class ContractService
 {
     protected $admissionService;
-    protected $contractBillService;
 
-    public function __construct(AdmissionService $admissionService, ContractBillService $contractBillService)
+    public function __construct(AdmissionService $admissionService)
     {
         $this->admissionService = $admissionService;
-        $this->contractBillService = $contractBillService;
     }
 
     public function store($request)
@@ -31,21 +25,19 @@ class ContractService
         $user = Auth::user();
 
         $data = [
-            "student_id" => $request['student_id'],
-            "date_contract" => Carbon::parse($request['date_contract'])->format('Y-m-d'),
-            "type" => $request['type'],
-
-            "product_category_id" => $request['product_category_id'],
-            "product_id" => $request['product_id'],
-            "special_id" => $request['special_id'],
-            "promotion_id" => $request['promotion_id'],
-
-            "manage_id" => $request['manage_id'],
-
-            "amount" => str_replace('.', '', $request['amount']),
-            "amount_offer" => str_replace('.', '', $request['amount_offer']),
-            "amount_special" => str_replace('.', '', $request['amount_special']),
-            "amount_promotion" => str_replace('.', '', $request['amount_promotion'])
+            "student_id" => $request->student_id,
+            "date_contract" => Carbon::parse($request->date_contract)->format('Y-m-d'),
+            "type" => $request->type,
+            "product_category_id" => $request->product_category_id,
+            "product_id" => $request->product_id,
+            "special_id" => $request->special_id,
+            "promotion_id" => $request->promotion_id,
+            "offer_extra" => $request->offer_extra,
+            "manage_id" => $request->manage_id,
+            "amount" => $request->amount,
+            "bill_number" => $request->bill_number,
+            "date_payment" => Carbon::parse($request->date_payment)->format('Y-m-d'),
+            "note" => $request->note,
         ];
 
         $contract = Contract::create($data);
@@ -66,14 +58,14 @@ class ContractService
 
         // $this->admissionService->store($request);
 
-        return $contract;
+        return $customer;
     }
 
 
     public function destroy($request)
     {
         $user = Auth::user();
-        $record = Contract::find($request->id);
+        $record = Contract::find($request->id); 
 
         $delete = $record->delete();
 

@@ -9,9 +9,8 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
+use App\Services\System\RolePermission;
+
 
 class UserController extends Controller
 {
@@ -20,9 +19,44 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    private $rolePermission;
+
+    public function __construct(RolePermission $rolePermission)
+    {
+        $this->rolePermission = $rolePermission;
+    }
+
     public function index()
     {
-        $users = User::with(['department','regency'])->orderBy('id', 'DESC')->get();
+        $birthday = request()->input('birthday');
+        $selectedDepartment = request()->input('selectedDepartment');
+        $selectedRegency = request()->input('selectedRegency');
+        $status = request()->input('status');
+
+        $query = User::with(['department','regency'])->orderBy('id', 'DESC');
+
+        if($birthday) {
+            $birthday = date('Y-m-d', strtotime($birthday));
+            $query->where('birthday', 'like', '%' . $birthday . '%');
+        }
+
+        if($selectedDepartment) {
+            $selectedDepartment = $selectedDepartment['id'];
+            $query->where('department_id', $selectedDepartment);
+        }
+
+        if($selectedRegency) {
+            $selectedDepartment = $selectedRegency['id'];
+            $query->where('regency_id', $selectedRegency);
+        }
+
+        if($status) {
+            $query->where('active', $status['id']);
+        }
+
+
+        $users = $query->get();
+
         foreach ($users as $user){
             if ($user->department){
                 $user->department->title_rename = $user->department->title;
@@ -92,8 +126,8 @@ class UserController extends Controller
 
             DB::commit();
             return response()->json(array(
-                'error' => false,
-                'result' => 'Đã thêm mới user',
+                'success' => false,
+                'message' => 'Đã thêm mới user',
             ));
         } catch (\Exception $ex) {
             DB::rollBack();
@@ -103,8 +137,8 @@ class UserController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được user',
+                'success' => true,
+                'message' => 'Chưa thêm được user',
             ));
         }
     }
@@ -166,10 +200,12 @@ class UserController extends Controller
                 'active' => 1
             ]);
 
+            $this->rolePermission->applyRolePermissionToUser($id);
+
             DB::commit();
             return response()->json(array(
-                'error' => false,
-                'result' => 'Cập nhật thành công user',
+                'success' => false,
+                'message' => 'Cập nhật thành công user',
             ));
         } catch (\Exception $exception) {
             \Log::info([
@@ -178,8 +214,32 @@ class UserController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
+                'success' => true,
+                'message' => 'Chưa cập nhật được user',
+            ));
+        }
+    }
+
+    public function delete ($id) {
+        DB::beginTransaction();
+        try {
+            $user = User::findOrFail($id);
+            $user->delete();
+            DB::commit();
+            return response()->json(array(
+                'success' => true,
+                'message' => 'Đã xóa user',
+            ));
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            \Log::info([
+                'message' => $exception->getMessage(),
+                'line' => __LINE__,
+                'method' => __METHOD__
+            ]);
+            return response()->json(array(
                 'error' => true,
-                'result' => 'Chưa cập nhật được user',
+                'message' => 'Chưa xóa được user ' . $exception->getMessage(),
             ));
         }
     }
@@ -208,4 +268,6 @@ class UserController extends Controller
             'message' => trans('message.change_active_article_success')
         ];
     }
+
+ 
 }
