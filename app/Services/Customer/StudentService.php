@@ -34,14 +34,22 @@ class StudentService
     {
         $user = Auth::user();
 
-        CustomerSegment::find($request->customer_segment_id)->update([
-            'birth' => $request->birth ? Carbon::parse($request->birth)->format('Y-m-d') : NULL,
-            'telephone_extra' => $request->telephone_extra ? $request->telephone_extra : NULL,
+        $customer = Customer::find($request['customer_id']);
+
+        $customer->update([
+            'birthday' => $request['customer']['birthday'],
+            'active' => 2,
+            'active_date' => null
+        ]);
+
+        CustomerSegment::find($request['customer_segment_id'])->update([
+            'birthday' => @$request['segment']['sbirthday'] ? Carbon::parse($request['segment']['birthday'])->format('Y-m-d') : NULL,
+            'telephone' => @$request['telephone'] ? $request['telephone'] : NULL,
         ]);
 
         $student = Student::updateOrCreate([
-            'customer_id' => $request->customer_id,
-            'customer_segment_id' => $request->customer_segment_id
+            'customer_id' => $request['customer_id'],
+            'customer_segment_id' => $request['customer_segment_id']
         ]);
 
         $request->student_id = $student->id;
@@ -113,7 +121,7 @@ class StudentService
         foreach ($students as $student) {
             $days += Carbon::parse($student->created_at)->diffInDays(Carbon::parse($student->customer->created_at));
 
-            switch ($student->customer->segment) {
+            switch ($student->customer->segment_id) {
                 case Segment::PRIMARY_SCHOOL:
                     $primary_school++;
                     break;

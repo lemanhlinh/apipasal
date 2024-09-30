@@ -280,6 +280,7 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
 
         # Customer\Student
         Route::post('khach-hang/hoc-vien/danh-sach', [StudentController::class, 'index']);
+        Route::post('khach-hang/hoc-vien/chi-tiet', [StudentController::class, 'detail']);
         Route::post('khach-hang/hoc-vien/them', [StudentController::class, 'store']);
         Route::post('khach-hang/hoc-vien/cap-nhat', [StudentController::class, 'update']);
         Route::post('khach-hang/hoc-vien/thong-ke', [StudentController::class, 'statistics']);

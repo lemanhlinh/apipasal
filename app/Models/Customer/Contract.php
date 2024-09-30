@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\ProductCategories;
 use App\Models\BusinessPolicy;
+use App\Models\Products;
 
 class Contract extends Model
 {
@@ -43,5 +44,10 @@ class Contract extends Model
     public function promtion()
     {
         return $this->belongsTo(BusinessPolicy::class, 'promotion_id', 'id');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Products::class, 'product_id', 'id');
     }
 }

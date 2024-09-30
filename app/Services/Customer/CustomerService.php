@@ -29,54 +29,53 @@ class CustomerService
 
     public function store($request)
     {
-         
         $user = Auth::user();
-        $segmentDetail = [];
+        $segments = [];
 
-        switch ($request->segment) {
+        switch ($request->segment_id) {
             case Segment::PRIMARY_SCHOOL:
-                foreach ($request->segmentInfo['children'] as $child) {
-                    $segmentDetail[] = [
-                        "name" => $child['name'],
-                        "gender" => $child['gender'],
-                        "district_id" => $child['district_id'],
-                        "market_id" => $child['market_id'],
-                        "class" => $child['class'],
+                foreach ($request->segment as $segmentItem) {
+                    $segments[] = [
+                        "name" => $segmentItem['name'],
+                        "gender" => $segmentItem['gender'],
+                        "district_id" => $segmentItem['district_id'],
+                        "market_id" => $segmentItem['market_id'],
+                        "class" => $segmentItem['class'],
                     ];
                 }
                 break;
             case Segment::SECONDARY_SCHOOL:
-                foreach ($request->segmentInfo['children'] as $child) {
-                    $segmentDetail[] = [
-                        "name" => $child['name'],
-                        "gender" => $child['gender'],
-                        "district_id" => $child['district_id'],
-                        "market_id" => $child['market_id'],
-                        "class" => $child['class'],
+                foreach ($request->segment as $segmentItem) {
+                    $segments[] = [
+                        "name" => $segmentItem['name'],
+                        "gender" => $segmentItem['gender'],
+                        "district_id" => $segmentItem['district_id'],
+                        "market_id" => $segmentItem['market_id'],
+                        "class" => $segmentItem['class'],
                     ];
                 }
                 break;
             case Segment::HIGH_SCHOOL:
-                $segmentDetail[] = [
-                    'district_id' => $request->segmentInfo['district_id'],
-                    'market_id' => $request->segmentInfo['market_id'],
-                    'class' => $request->segmentInfo['class'],
-                    'parent' => json_encode($request->segmentInfo['parent'], JSON_UNESCAPED_UNICODE),
+                $segments[] = [
+                    'district_id' => $request->segment[0]['district_id'],
+                    'market_id' => $request->segment[0]['market_id'],
+                    'class' => $request->segment[0]['class'],
+                    'parent' => json_encode($request->segment[0]['parent'], JSON_UNESCAPED_UNICODE),
                 ];
                 break;
             case Segment::COLLEGE:
-                $segmentDetail[] = [
-                    'district_id' => $request->segmentInfo['district_id'],
-                    'market_id' => $request->segmentInfo['market_id'],
-                    'college_year' => $request->segmentInfo['college_year'],
-                    'college_major' => $request->segmentInfomajor['college_major'],
+                $segments[] = [
+                    'district_id' => @$request->segment[0]['district_id'],
+                    'market_id' => @$request->segment[0]['market_id'],
+                    'college_year' => @$request->segment[0]['college_year'],
+                    'college_major' => @$request->segment[0]['college_major'] ?: 0,
                 ];
                 break;
             case Segment::WORKING:
-                $segmentDetail[] = [
-                    'company' => $request->segmentInfo['company'],
-                    'position' => $request->segmentInfo['position'],
-                    'work' => $request->segmentInfo['work'],
+                $segments[] = [
+                    'company' => $request->segment[0]['company'],
+                    'position' => $request->segment[0]['position'],
+                    'work' => $request->segment[0]['work'],
                 ];
                 break;
         }
@@ -87,21 +86,20 @@ class CustomerService
             'email' => $request->email,
             'sex' => $request->sex,
             'year_birth' => $request->year_birth,
-            'country_id' => $request->country,
-            'city_id' => $request->city,
-            'district_id' => $request->district,
+            'country_id' => $request->country_id,
+            'city_id' => $request->city_id,
+            'district_id' => $request->district_id,
             'address' => $request->address,
-            'segment' => $request->segment,
-            'segment_detail' => '[]',
-            'source' => $request->source,
-            'source_detail' => $request->source_detail,
+            'segment_id' => $request->segment_id,
+            'source_type_id' => $request->source_type_id,
+            'source_id' => $request->source_id,
             'issue' => $request->issue,
             'consulting_detail' => json_encode($request->consulting_detail, JSON_UNESCAPED_UNICODE),
             'consulting' => $request->consulting,
             'potential' => $request->potential,
             'date_registration' => Carbon::parse($request->date_registration)->format('Y-m-d'),
-            'product_category_id' => $request->product_category,
-            'product_id' => $request->product,
+            'product_category_id' => $request->product_category_id,
+            'product_id' => $request->product_id,
             'contract' => $request->contract ? 1 : 0,
             'manage_id' => $user->id,
             'active' => Active::NEW,
@@ -110,8 +108,8 @@ class CustomerService
 
         $customer = Customer::create($data);
 
-        foreach ($segmentDetail as $segment) {
-            $customer->segment_info()->create($segment);
+        foreach ($segments as $segment) {
+            $customer->segment()->create($segment);
         }
 
         if ($request->source == Source::PARTNER) {
@@ -194,7 +192,7 @@ class CustomerService
 
             $total++;
 
-            switch ($customer->segment) {
+            switch ($customer->segment_id) {
                 case Segment::PRIMARY_SCHOOL:
                     $primary_school++;
                     break;

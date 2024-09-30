@@ -12,7 +12,6 @@ use App\Models\Cities;
 use App\Models\Countries;
 use App\Models\Districts;
 use App\Constants\Customer\Source;
-use App\Models\BusinessPartner;
 
 use Illuminate\Support\Facades\Log;
 
@@ -32,21 +31,21 @@ class Customer extends Model
         return $this->belongsTo(User::class, 'manage_id');
     }
 
-    public function source_info()
+    public function source()
     {
-        switch ($this->source) {
+        switch ($this->source_type_id) {
             case Source::OTHER:
-                return $this->belongsTo(BusinessSettingSourceCustomer::class, 'source_detail', 'id');
+                return $this->belongsTo(BusinessSettingSourceCustomer::class, 'source_id', 'id');
             case Source::PARTNER:
-                return $this->belongsTo(BusinessPartner::class, 'source_detail', 'id');
+                return $this->belongsTo(BusinessPartner::class, 'source_id', 'id');
             case Source::STUDENT:
-                return $this->belongsTo(Student::class, 'source_detail', 'id');
+                return $this->belongsTo(Student::class, 'source_id', 'id');
             default:
                 return null;
         }
     }
 
-    public function segment_info()
+    public function segment()
     {
         return $this->hasMany(CustomerSegment::class, 'customer_id', 'id'); 
     }

@@ -47,7 +47,7 @@ class CustomerController extends Controller
 
         foreach ($customer as $item) {
             $item->consulting_detail =  json_decode($item->consulting_detail);
-            $item->source_info;
+            $item->source;
         }
 
         return $customer;
@@ -100,7 +100,7 @@ class CustomerController extends Controller
                 'district' => function ($query) {
                     $query->select('id', 'name', 'code');
                 },
-                'segment_info' => function ($query) {
+                'segment' => function ($query) {
                     $query->with([
                         'district' => function ($queryDistrict) {
                             $queryDistrict->select('id', 'name', 'code');
@@ -117,7 +117,7 @@ class CustomerController extends Controller
         if ($data) {
             $data->source_info;
             $data->consulting_detail =  json_decode($data->consulting_detail);
-            foreach ($data->segment_info as $segmentItem) {
+            foreach ($data->segment as $segmentItem) {
                 $segmentItem->parent = json_decode($segmentItem->parent);
             }
         }

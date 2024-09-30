@@ -20,21 +20,58 @@ class StudentController extends Controller
         $this->studentService = $studentService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $data = Student::with([
-            'customer',
-            'contracts',
-            'segment'
-        ])
-        ->paginate(20);
+        $query = Student::with([
+            'customer' => function($query) {
+                $query->with([
+                    'country' => function ($query) {
+                        $query->select('id', 'name');
+                    },
+                    'city' => function ($query) {
+                        $query->select('id', 'name', 'code');
+                    },
+                    'district' => function ($query) {
+                        $query->select('id', 'name', 'code');
+                    },
+                    'management' => function ($query1) {
+                        $query1->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
+                            $query2->select('id', 'title')->with(['campuses' => function ($query3) {
+                                $query3->select('campuses.id', 'campuses.code');
+                            }]);
+                        }]);
+                    },
+                ]);
+            },
+            'contracts' => function($query) {
+                $query->with(['product', 'bills', 'product_category']);
+            },
+            'segment' => function ($query) {
+                $query->with(['market']);
+            },
+        ]);
 
-        $totalPages = $data->lastPage();
+        $telephone = $request->telephone;
+
+        if ($request->has('telephone') && $telephone) {
+            $query->whereHas('customer', function ($query) use ($telephone) {
+                $query->where('phone', $telephone);
+            });
+        }
+
+        $students = $query->paginate(20);
+
+        $totalPages = $students->lastPage();
+        $data = $students->items();
+
+        foreach ($data as $item) {
+            $item->segment->parent = json_decode($item->segment->parent);
+        }
 
         return response()->json(array(
             'error' => false,
             'data' => [
-                'data' => $data->items(),
+                'data' => $data,
                 'total_pages' => $totalPages,
             ],
         ));
@@ -66,9 +103,69 @@ class StudentController extends Controller
         }
     }
 
-    public function detail()
+    public function detail(Request $request)
     {
-        return 'Student Detail';
+        $data = Student::whereHas('customer', function ($query) use ($request) {
+                $query->where('phone', $request->telephone);
+            })
+            ->with([
+                'customer' => function ($query) {
+                    $query->with([
+                        'management' => function ($query) {
+                            $query->select('id', 'name', 'department_id')->with(['department' => function ($queryDepartment) {
+                                $queryDepartment->select('id', 'title')->with(['campuses' => function ($queryCampus) {
+                                    $queryCampus->select('campuses.id', 'campuses.code');
+                                }]);
+                            }]);
+                        },
+                        'country' => function ($query) {
+                            $query->select('id', 'name');
+                        },
+                        'city' => function ($query) {
+                            $query->select('id', 'name', 'code');
+                        },
+                        'district' => function ($query) {
+                            $query->select('id', 'name', 'code');
+                        },
+                        'segment' => function ($query) {
+                            $query->with([
+                                'district' => function ($queryDistrict) {
+                                    $queryDistrict->select('id', 'name', 'code');
+                                },
+                                'market' => function ($queryMarket) {
+                                    $queryMarket->select('id', 'title');
+                                },
+                            ]);
+                        },
+                        'students',
+                    ]);
+                },
+                'segment' => function ($query) {
+                    $query->with([
+                        'district' => function ($queryDistrict) {
+                            $queryDistrict->select('id', 'name', 'code');
+                        },
+                        'market' => function ($queryMarket) {
+                            $queryMarket->select('id', 'title');
+                        },
+                    ]);
+                },
+            ])
+            ->first();
+
+        if ($data) {
+            $data->customer->source_info;
+            $data->customer->consulting_detail =  json_decode($data->consulting_detail);
+            foreach ($data->customer->segment as $segmentItem) {
+                $segmentItem->parent = json_decode($segmentItem->parent);
+            }
+        }
+
+        return response()->json(array(
+            'error' => false,
+            'message' => 'Thành công',
+            'data' => $data
+        ));
     }
 
     public function update(Request $request)
