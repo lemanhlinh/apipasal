@@ -63,13 +63,17 @@ class ContractController extends Controller
     {
         DB::beginTransaction();
         try {
-
-            $data = $this->contractService->store($request);
+             
+            foreach ($request->contracts as $contract) {
+                $contract['student_id'] = $request->student_id;
+              
+                $this->contractService->store($contract);
+            }           
 
             DB::commit();
             return response()->json(array(
                 'error' => false,
-                'data' => $data,
+                // 'data' => $data,
                 'result' => 'Đã thêm mới khách hàng!',
             ));
         } catch (\Exception $ex) {

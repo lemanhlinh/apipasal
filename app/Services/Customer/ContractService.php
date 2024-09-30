@@ -50,19 +50,21 @@ class ContractService
 
         $contract = Contract::create($data);
 
-        $this->contractBillService->store([
-            'contract_id' => $contract->id,
-            'bill_type' => 1,
-            'transaction_type' => 1,
-            'amount_payment' => str_replace('.', '', $request['amount_payment']),
-            'bill_number' => $request['bill_number'],
-            'date_payment' => Carbon::parse($request['date_payment'])->format('Y-m-d'),
-            'note' => $request['note'],
-        ]);
+        foreach ($request['bills'] as $bill) {
+            $this->contractBillService->store([
+                'contract_id' => $contract->id,
+                'bill_type' => 1,
+                'transaction_type' => 1,
+                'amount_payment' => str_replace('.', '', $bill['amount_payment']),
+                'bill_number' => $bill['bill_number'],
+                'date_payment' => Carbon::parse($bill['date_payment'])->format('Y-m-d'),
+                'note' => $bill['note'],
+            ]);
+        }       
 
-        $this->updateSingleStatus($user->id);
+        // $this->updateSingleStatus($user->id);
 
-        $this->admissionService->store($request);
+        // $this->admissionService->store($request);
 
         return $contract;
     }
