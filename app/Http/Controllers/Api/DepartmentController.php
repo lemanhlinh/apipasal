@@ -142,8 +142,8 @@ class DepartmentController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được phòng ban',
+                'success' => true,
+                'message' => 'Chưa thêm được phòng ban',
             ));
         }
     }
@@ -225,8 +225,8 @@ class DepartmentController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa cập nhật được phòng ban',
+                'success' => true,
+                'message' => 'Chưa cập nhật được phòng ban',
             ));
         }
     }
@@ -251,8 +251,17 @@ class DepartmentController extends Controller
         $campuses = Department::findOrFail($id);
         $campuses->update(['active' => !$campuses->active]);
         return [
-            'status' => true,
+            'success' => true,
             'message' => trans('message.change_active_article_success')
         ];
+    }
+
+    public function delete($id) {
+        $cat = Department::findOrFail($id);
+        $cat->delete();
+        return response()->json(array(
+            'success' => false,
+            'message' => 'Đã xóa phòng ban',
+        ));
     }
 }

@@ -200,4 +200,13 @@ class ProductsController extends Controller
             'message' => trans('message.change_active_article_success')
         ];
     }
+
+    public function delete($id) {
+        $product = Products::findOrFail($id);
+        $product->delete();
+        return response()->json(array(
+            'error' => false,
+            'message' => 'Xóa sản phẩm thành công',
+        ));
+    }
 }

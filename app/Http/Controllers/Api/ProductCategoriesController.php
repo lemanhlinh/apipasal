@@ -126,6 +126,17 @@ class ProductCategoriesController extends Controller
         }
     }
 
+    public function changeActive($id)
+    {
+        $campuses = ProductCategories::findOrFail($id);
+        $campuses->update(['active' => !$campuses->active]);
+        return [
+            'status' => true,
+            'message' => trans('message.change_active_article_success')
+        ];
+    }
+
+
     /**
      * Remove the specified resource from storage.
      *
@@ -135,5 +146,14 @@ class ProductCategoriesController extends Controller
     public function destroy(ProductCategories $productCategories)
     {
         //
+    }
+
+    public function delete($id) {
+        $cat = ProductCategories::findOrFail($id);
+        $cat->delete();
+        return response()->json(array(
+            'error' => false,
+            'result' => 'Đã xóa nhóm sản phẩm',
+        ));
     }
 }
