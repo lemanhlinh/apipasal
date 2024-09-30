@@ -150,4 +150,38 @@ class CoursesController extends Controller
     {
         //
     }
+
+    public function changeActive($id)
+    {
+        $courseCategory = Courses::findOrFail($id);
+        $courseCategory->update(['active' => !$courseCategory->active]);
+        return [
+            'status' => true,
+            'message' => 'Cập nhật trạng thái thành công'
+        ];
+    }
+
+    public function delete($id) {
+        DB::beginTransaction();
+        try {
+            $cat = Courses::findOrFail($id);
+            $cat->delete();
+            DB::commit();
+            return response()->json(array(
+                'success' => true,
+                'message' => 'Đã xóa khóa học',
+            ));
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            \Log::info([
+                'message' => $exception->getMessage(),
+                'line' => __LINE__,
+                'method' => __METHOD__
+            ]);
+            return response()->json(array(
+                'error' => true,
+                'message' => 'Chưa xóa được khóa học ' . $exception->getMessage(),
+            ));
+        }
+    }
 }

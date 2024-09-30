@@ -22,7 +22,8 @@ use App\Http\Controllers\Api\Customer\ContractController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\PermissionController;
 
-
+use App\Http\Controllers\Api\CourseCategoriesController;
+use App\Http\Controllers\Api\CoursesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,6 +50,10 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::group(['middleware' => ['permission:edit_campuses']], function () {
             Route::post('update-trung-tam/{id}', 'CampusesController@update');
             Route::post('active-trung-tam/{id}', 'CampusesController@changeActive');
+        });
+
+        Route::group(['middleware' => ['permission:delete_campuses']], function () {
+            Route::post('delete-trung-tam/{id}', 'CampusesController@delete');
         });
 
         // Route::group(['middleware' => ['permission:view_departments']], function () {
@@ -98,13 +103,17 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('update-nhan-vien/{id}', [UserController::class, 'update']);
         Route::post('xoa-nhan-vien/{id}', [UserController::class, 'delete']);
 
-        Route::post('nhom-khoa-hoc', 'CourseCategoriesController@index');
-        Route::post('tao-nhom-khoa-hoc', 'CourseCategoriesController@store');
-        Route::post('update-nhom-khoa-hoc/{id}', 'CourseCategoriesController@update');
+        Route::post('nhom-khoa-hoc', [CourseCategoriesController::class, 'index']);
+        Route::post('tao-nhom-khoa-hoc', [CourseCategoriesController::class, 'store']);
+        Route::post('active-nhom-khoa-hoc/{id}', [CourseCategoriesController::class, 'changeActive']);
+        Route::post('update-nhom-khoa-hoc/{id}', [CourseCategoriesController::class, 'update']);
+        Route::post('delete-nhom-khoa-hoc/{id}', [CourseCategoriesController::class, 'delete']);
 
         Route::post('khoa-hoc', 'CoursesController@index');
         Route::post('tao-khoa-hoc', 'CoursesController@store');
-        Route::post('update-khoa-hoc/{id}', 'CoursesController@update');
+        Route::post('active-khoa-hoc/{id}', [CoursesController::class, 'changeActive']);
+        Route::post('update-khoa-hoc/{id}', [CoursesController::class, 'update']);
+        Route::post('delete-khoa-hoc/{id}', [CoursesController::class, 'delete']);
 
         Route::post('nhom-san-pham', 'ProductCategoriesController@index');
         Route::post('tao-nhom-san-pham', 'ProductCategoriesController@store');
