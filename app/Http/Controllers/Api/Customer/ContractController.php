@@ -27,7 +27,7 @@ class ContractController extends Controller
 
         $data = Contract::orderBy('id', 'DESC')
             ->where('manage_id', $user->id)
-            ->orWhereHas('customer', function ($query) use ($user) {
+            ->orWhereHas('student.customer', function ($query) use ($user) {
                 $query->where('manage_id', $user->id);
             })
             ->with([
@@ -35,18 +35,15 @@ class ContractController extends Controller
                     $query->select('id', 'name');
                 },
                 'student' => function ($query) {
-                    $query->select('id', 'name')->with([
-                        'customer' => function ($queryStudent) {
-                            $queryStudent->with([
-                                'management' => function ($queryCustomer) {
-                                    $queryCustomer->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
+                    $query->with([
+                        'customer' => function ($queryCustomer) {
+                            $queryCustomer->with([
+                                'management' => function ($queryManagement) {
+                                    $queryManagement->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
                                         $query2->select('id', 'title')->with(['campuses' => function ($query3) {
                                             $query3->select('campuses.id', 'campuses.code');
                                         }]);
                                     }]);
-                                },
-                                'source_info' => function ($query) {
-                                    $query->select('id', 'title', 'code');
                                 }
                             ]);
                         },
@@ -56,6 +53,10 @@ class ContractController extends Controller
             ])
             ->get();
 
+        foreach ($data as $contract) {
+            $contract->student->customer->source;
+        }
+
         return $data;
     }
 
@@ -63,17 +64,20 @@ class ContractController extends Controller
     {
         DB::beginTransaction();
         try {
-             
+            $data = [];
+            
             foreach ($request->contracts as $contract) {
                 $contract['student_id'] = $request->student_id;
-              
-                $this->contractService->store($contract);
-            }           
+                $data [] = $this->contractService->store($contract);
+            }
 
             DB::commit();
             return response()->json(array(
                 'error' => false,
-                // 'data' => $data,
+                'data' => [
+                    'student_id' => $request->student_id,
+                    'contracts' => $data
+                ],
                 'result' => 'Đã thêm mới khách hàng!',
             ));
         } catch (\Exception $ex) {
