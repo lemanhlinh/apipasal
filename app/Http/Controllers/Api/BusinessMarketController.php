@@ -77,6 +77,17 @@ class BusinessMarketController extends Controller
         ], 200);
     }
 
+    public function detail($id)
+    {
+        $market = BusinessMarket::with(['volume', 'facebook', 'history', 'cities', 'districts'])->find($id);
+        if (!$market) {
+            return response()->json(['message' => 'Data not found'], 404);
+        }
+
+        return response()->json([
+            'data' => $market
+        ], 200);
+    }
     /**
      * Show the form for creating a new resource.
      *
