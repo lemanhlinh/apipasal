@@ -69,10 +69,9 @@ class RegenciesController extends Controller
         }
         if (@$request->input('permission'))
             $permission = $request->input('permission');
-
         if (@$permission) {
             $role = Role::where('name', $permission['code'])->first();
-            $role_permission = RoleModel::where('role_code', $permission['code'])->get();
+            $role_permission = RoleModel::where('role_id', $role->id)->get();
 
             $new_regency = Regencies::create([
                 'title' => $title,

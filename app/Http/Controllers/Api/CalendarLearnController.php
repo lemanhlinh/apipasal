@@ -45,6 +45,12 @@ class CalendarLearnController extends Controller
         DB::beginTransaction();
         try {
             $title = $request->input('title');
+            if(!$title) {
+                return response()->json(array(
+                    'success' => false,
+                    'message' => 'Vui lòng nhập lịch học',
+                ));
+            }
             $days = $request->input('days');
             CalendarLearn::create([
                 'title' => $title,
@@ -54,8 +60,8 @@ class CalendarLearnController extends Controller
 
             DB::commit();
             return response()->json(array(
-                'error' => false,
-                'result' => 'Đã thêm mới Lịch học',
+                'success' => true,
+                'message' => 'Đã thêm mới Lịch học',
             ));
         } catch (\Exception $ex) {
             DB::rollBack();
@@ -65,8 +71,8 @@ class CalendarLearnController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
-                'error' => false,
-                'result' => 'Chưa thêm được Lịch học',
+                'success' => false,
+                'message' => 'Chưa thêm được lịch học ',
             ));
         }
     }
@@ -114,8 +120,8 @@ class CalendarLearnController extends Controller
             ]);
             DB::commit();
             return response()->json(array(
-                'error' => false,
-                'result' => 'Cập nhật thành công',
+                'success' => true,
+                'message' => 'Cập nhật thành công',
             ));
         } catch (\Exception $exception) {
             \Log::info([
@@ -124,8 +130,8 @@ class CalendarLearnController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
-                'error' => false,
-                'result' => 'Chưa cập nhật được',
+                'success' => false,
+                'message' => 'Chưa cập nhật được',
             ));
         }
     }
@@ -142,8 +148,18 @@ class CalendarLearnController extends Controller
         $data->delete($id);
 
         return [
-            'status' => true,
+            'success' => true,
             'message' => trans('message.delete_page_success')
+        ];
+    }
+
+    public function changeActive($id)
+    {
+        $data = CalendarLearn::findOrFail($id);
+        $data->update(['active' => !$data->active]);
+        return [
+            'success' => true,
+            'message' => trans('message.change_active_article_success')
         ];
     }
 }

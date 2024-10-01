@@ -187,10 +187,10 @@ class UserController extends Controller
             $regency_id = $request->input('regency_id');
             $regency = $request->input('regency');
             $user = User::findOrFail($id);
-            $user->update([
+
+            $data = [
                 'name' => $name,
                 'email' => $email,
-                'password' => bcrypt($password),
                 'phone' => $phone,
                 'birthday' => Carbon::parse($birthday)->toDateString(),
                 'image' => $image,
@@ -198,7 +198,13 @@ class UserController extends Controller
                 'regency_id' => $regency['id'],
                 'used_time' => now(),
                 'active' => 1
-            ]);
+            ];
+            
+            if ($password) {
+                $data['password'] = bcrypt($password);
+            }
+
+            $user->update($data);
 
             $this->rolePermission->applyRolePermissionToUser($id);
 

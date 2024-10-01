@@ -143,4 +143,17 @@ class DayShiftLearnController extends Controller
             'message' => trans('message.delete_page_success')
         ];
     }
+
+    public function changeActive($id)
+    {
+        $DayShiftLearn = DayShiftLearn::findOrFail($id);
+        $DayShiftLearn->update(['active' => !$DayShiftLearn->active]);
+        return [
+            'status' => true,
+            'message' => trans('message.change_active_article_success')
+        ];
+    }
+
+
+
 }

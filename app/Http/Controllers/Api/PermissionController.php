@@ -37,9 +37,11 @@ class PermissionController extends Controller
         $regency_code = request()->regency_code;
         $role = Role::where('name', $regency_code)->first();
         
-        $list_permission = Permission::orderBy('display_name', 'ASC')->with('role_permission', function ($query) use ($role) {
-            $query->where('role_id', $role->id);
-        })->get();
+        $list_permission = Permission::orderBy('display_name', 'ASC')->with(['role_permission' => function ($query) use ($role) {
+            if (isset($role) && is_object($role) && isset($role->id)) {
+                $query->where('role_id', $role->id);
+            }
+        }])->get();
 
         return $list_permission;
     }
@@ -72,7 +74,12 @@ class PermissionController extends Controller
                     $view_task,
                 ];
                 $array_permission = Permission::whereIn('name', $array_task)->get();
-                $existingPermissions = RoleModel::where('role_code', $role->code)->pluck('permission_id')->toArray();
+
+                $existingPermissions = [];
+                if(@$role->name) {
+                    $existingPermissions = RoleModel::where('role_id', $role->id)->pluck('permission_id')->toArray();                    
+                }
+
                 $permissionsToAdd = [];
                 $permissionsToRemove = [];
     
@@ -109,7 +116,7 @@ class PermissionController extends Controller
                         }
                     }
                 }
-    
+
                 if (!empty($permissionsToAdd)) {
                     $dataToAdd = array_map(function($permissionId) use ($role) {
                         return [
@@ -124,7 +131,7 @@ class PermissionController extends Controller
                 }
     
                 if (!empty($permissionsToRemove)) {
-                    RoleModel::where('role_code', $role->code)->whereIn('permission_id', $permissionsToRemove)->delete();
+                    RoleModel::where('role_id', $role->id)->whereIn('permission_id', $permissionsToRemove)->delete();
                 }
 
                 $user = User::where('regency_id', $regency->id)->first();

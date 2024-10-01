@@ -52,8 +52,8 @@ class TimeStudyController extends Controller
 
             DB::commit();
             return response()->json(array(
-                'error' => false,
-                'result' => 'Đã thêm mới Ca học',
+                'success' => true,
+                'message' => 'Đã thêm mới ca học',
             ));
         } catch (\Exception $ex) {
             DB::rollBack();
@@ -63,8 +63,8 @@ class TimeStudyController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được Ca học',
+                'success' => false,
+                'message' => 'Chưa thêm được ca học',
             ));
         }
     }
@@ -110,8 +110,8 @@ class TimeStudyController extends Controller
             ]);
             DB::commit();
             return response()->json(array(
-                'error' => false,
-                'result' => 'Cập nhật thành công',
+                'success' => false,
+                'message' => 'Cập nhật thành công',
             ));
         } catch (\Exception $exception) {
             \Log::info([
@@ -120,8 +120,8 @@ class TimeStudyController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa cập nhật được',
+                'success' => true,
+                'message' => 'Chưa cập nhật được',
             ));
         }
     }
