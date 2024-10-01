@@ -33,7 +33,7 @@ class BusinessMarketController extends Controller
         $campuses_id = request('campuses_id');
         $segment = request('segment');
 
-        $query = BusinessMarket::with(['campuses', 'volume', 'facebook', 'history', 'cities', 'districts'])->orderBy('id', 'DESC');
+        $query = BusinessMarket::with(['volume', 'facebook', 'history', 'cities', 'districts'])->orderBy('id', 'DESC');
 
         if ($city_id) {
             $query->where('city_id', $city_id);
@@ -54,56 +54,26 @@ class BusinessMarketController extends Controller
         }
 
         $markets = $query->paginate(15);
+
+        $campusesIds = [];
+        foreach ($markets as $market) {
+            $campusesIds = array_merge($campusesIds, json_decode($market->campuses_id, true));
+        }
+        $campusesIds = array_unique($campusesIds);
+        
+        $campuses = Campuses::whereIn('id', $campusesIds)->get()->keyBy('id');
+        
+        foreach ($markets as $market) {
+            $market->campuses = collect(json_decode($market->campuses_id, true))->map(function ($id) use ($campuses) {
+                return $campuses->get($id);
+            });
+        }
         if (!$markets) {
             return response()->json(['message' => 'Data not found'], 404);
         }
 
-        $middleSchoolCount = 0;
-        $primarySchoolCount = 0;
-        $highSchoolCount = 0;
-        $collegeCount = 0;
-        $workingCount = 0;
-
-        foreach ($markets as $item) {
-            $campuses = json_decode($item->campuses_id);
-            $temp = [];
-
-            foreach ($campuses as $campus) {
-                $campusTitle = Campuses::where('code', $campus)->first()->title ?? 'Unknown';
-                $temp[] = $campusTitle;
-            }
-
-            switch ($item->segment) {
-                case 1:
-                    $primarySchoolCount++;
-                    break;
-                case 2:
-                    $middleSchoolCount++;
-                    break;
-                case 3:
-                    $highSchoolCount++;
-                    break;
-                case 4:
-                    $collegeCount++;
-                    break;
-                case 5:
-                    $workingCount++;
-                    break;
-            }
-
-
-            $item->list_campus = implode(', ', $temp);
-        }
-
         return response()->json([
-            'data' => $markets,
-            'statistic' => [
-                'middleSchoolCount' => $middleSchoolCount,
-                'primarySchoolCount' => $primarySchoolCount,
-                'highSchoolCount' => $highSchoolCount,
-                'collegeCount' => $collegeCount,
-                'workingCount' => $workingCount,
-            ]
+            'data' => $markets
         ], 200);
     }
 
