@@ -10,14 +10,17 @@ use App\Models\Customer\Contract;
 use App\Models\Customer\ContractStatus;
 
 use App\Services\Customer\AdmissionService;
+use App\Services\Customer\ContractBillService;
 
 class ContractService
 {
     protected $admissionService;
+    protected $contractBillService;
 
-    public function __construct(AdmissionService $admissionService)
+    public function __construct(AdmissionService $admissionService, ContractBillService $contractBillService)
     {
         $this->admissionService = $admissionService;
+        $this->contractBillService = $contractBillService;
     }
 
     public function store($request)
@@ -54,11 +57,11 @@ class ContractService
             ]);
         }       
 
-        // $this->updateSingleStatus($user->id);
+        $this->updateSingleStatus($user->id);
 
-        // $this->admissionService->store($request);
+        $this->admissionService->store($request);
 
-        return $customer;
+        return $contract;
     }
 
 
