@@ -11,7 +11,7 @@ class BusinessMarket extends Model
 
     protected $guarded = ['id'];
 
-    public function volume()
+    public function volumes()
     {
         return $this->hasMany(BusinessMarketVolume::class, 'market_id', 'id');
     }
@@ -19,7 +19,7 @@ class BusinessMarket extends Model
     {
         return $this->hasMany(BusinessMarketFacebook::class, 'market_id', 'id');
     }
-    public function history()
+    public function histories()
     {
         return $this->hasMany(BusinessMarketHistory::class, 'market_id', 'id');
     }
