@@ -50,7 +50,7 @@ class BusinessPartnerController extends Controller
 
         try {
             if (!$request->has('title')) {
-                return response()->json(['error' => 'Title is required'], 400);
+                return response()->json(['message' => 'Chưa nhập tên đối tác', 'success' => false], 200);
             }
             $title = $request->title;
             $phone = $request->phone;
@@ -91,9 +91,9 @@ class BusinessPartnerController extends Controller
 
             DB::commit();
             return  response()->json(array(
-                'error' => false,
+                'success' => true,
                 'data' => $partner,
-                'result' => 'Đã thêm mới đào tạo',
+                'message' => 'Đã thêm mới đối tác',
             ));
         } catch (\Exception $ex) {
             DB::rollBack();
@@ -103,8 +103,8 @@ class BusinessPartnerController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được đối tác',
+                'success' => false,
+                'message' => 'Chưa thêm được đối tác' . $ex->getMessage(),
             ));
         }
     }
