@@ -4,6 +4,6 @@ namespace App\Constants\Customer;
 
 class Type
 {
-    public const DEPOT = 1;
-    public const NEW = 2;
+    public const DEPOT = 2;
+    public const NEW = 1;
 }

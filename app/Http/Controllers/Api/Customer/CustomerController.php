@@ -150,7 +150,7 @@ class CustomerController extends Controller
             }
 
             if ($request->consulting_date) {
-                $data['consulting_date'] = Carbon::createFromFormat('dmY', $request->consulting_date)->format('Y-m-d');
+                $data['consulting_date'] = Carbon::parse($request->consulting_date)->format('Y-m-d');
             }
 
             if (isset($request->contract)) {

@@ -79,8 +79,7 @@ class ContractController extends Controller
 
     public function store(Request $request)
     {
-        DB::beginTransaction();
-        try {
+        return $this->handleTransaction(function() use ($request) {
             $data = [];
             
             foreach ($request->contracts as $contract) {
@@ -89,26 +88,14 @@ class ContractController extends Controller
                 $data [] = $this->contractService->store($contract);
             }
 
-            DB::commit();
             return response()->json(array(
                 'error' => false,
                 'data' => [
                     'student_id' => $request->student_id,
                     'contracts' => $data
                 ],
-                'result' => 'Đã thêm mới khách hàng!',
+                'result' => 'Đã thêm mới hợp đồng!',
             ));
-        } catch (\Exception $ex) {
-            DB::rollBack();
-            Log::info([
-                'message' => $ex->getMessage(),
-                'line' => __LINE__,
-                'method' => __METHOD__
-            ]);
-            return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được khách hàng!',
-            ));
-        }
+        }, 'Chưa thêm được hợp đồng!');
     }
 }

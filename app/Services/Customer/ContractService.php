@@ -28,20 +28,19 @@ class ContractService
         $user = Auth::user();
 
         $data = [
-            "student_id" => $request->student_id,
-            "date_contract" => Carbon::parse($request->date_contract)->format('Y-m-d'),
-            "type" => $request->type,
-            "product_category_id" => $request->product_category_id,
-            "product_id" => $request->product_id,
-            "special_id" => $request->special_id,
-            "promotion_id" => $request->promotion_id,
-            "offer_extra" => $request->offer_extra,
-            "manage_id" => $request->manage_id,
+            "student_id" => $request['student_id'],
+            "date_contract" => Carbon::parse($request['date_contract'])->format('Y-m-d'),
+            "type" => $request['type'],
+            "product_category_id" => $request['product_category_id'],
+            "product_id" => $request['product_id'],
+            "special_id" => $request['special_id'],
+            "promotion_id" => $request['promotion_id'],
+            "amount" => str_replace('.', '', $request['amount']),
+            "amount_offer" => str_replace('.', '', $request['amount_offer']),
+            "amount_promotion" => str_replace('.', '', $request['amount_promotion']),
+            "amount_special" => str_replace('.', '', $request['amount_special']),
+            "manage_id" => $request['manage_id'],
             "user_id" => $user->id,
-            "amount" => $request->amount,
-            "bill_number" => $request->bill_number,
-            "date_payment" => Carbon::parse($request->date_payment)->format('Y-m-d'),
-            "note" => $request->note,
         ];
 
         $contract = Contract::create($data);
@@ -59,9 +58,9 @@ class ContractService
             ]);
         }       
 
-        $this->updateSingleStatus($user->id);
+        // $this->updateSingleStatus($user->id);
 
-        $this->admissionService->store($request);
+        // $this->admissionService->store($request);
 
         return $contract;
     }
