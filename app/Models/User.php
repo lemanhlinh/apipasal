@@ -85,4 +85,14 @@ class User extends Authenticatable implements JWTSubject
     public function role_has_permissions() {
         return $this->hasMany(Role::class, 'role_id', 'id');
     }
+
+    public function getDepartmentNameAttribute()
+    {
+        return $this->department->title;
+    }
+
+    public function getCampusesNameAttribute()
+    {
+        return $this->department->campuses->pluck('code')->implode(', ');
+    }
 }

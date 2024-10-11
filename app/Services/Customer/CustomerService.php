@@ -14,6 +14,7 @@ use App\Services\Business\BusinessPartnerService;
 use App\Constants\Customer\Source;
 use App\Constants\Customer\Consulting;
 use App\Constants\Customer\Active;
+use App\Constants\Customer\Type;
 use App\Constants\Customer\Segment;
 use App\Models\Customer\CustomerSegment;
 
@@ -32,9 +33,9 @@ class CustomerService
         $user = Auth::user();
         $segments = [];
 
-        switch ($request->segment_id) {
+        switch ($request['segment_id']) {
             case Segment::PRIMARY_SCHOOL:
-                foreach ($request->segment as $segmentItem) {
+                foreach ($request['segment'] as $segmentItem) {
                     $segments[] = [
                         "name" => $segmentItem['name'],
                         "gender" => $segmentItem['gender'],
@@ -45,7 +46,7 @@ class CustomerService
                 }
                 break;
             case Segment::SECONDARY_SCHOOL:
-                foreach ($request->segment as $segmentItem) {
+                foreach ($request['segment'] as $segmentItem) {
                     $segments[] = [
                         "name" => $segmentItem['name'],
                         "gender" => $segmentItem['gender'],
@@ -57,52 +58,53 @@ class CustomerService
                 break;
             case Segment::HIGH_SCHOOL:
                 $segments[] = [
-                    'district_id' => $request->segment[0]['district_id'],
-                    'market_id' => $request->segment[0]['market_id'],
-                    'class' => $request->segment[0]['class'],
-                    'parent' => json_encode($request->segment[0]['parent'], JSON_UNESCAPED_UNICODE),
+                    'district_id' => $request['segment'][0]['district_id'],
+                    'market_id' => $request['segment'][0]['market_id'],
+                    'class' => $request['segment'][0]['class'],
+                    'parent' => json_encode($request['segment'][0]['parent'], JSON_UNESCAPED_UNICODE),
                 ];
                 break;
             case Segment::COLLEGE:
                 $segments[] = [
-                    'district_id' => @$request->segment[0]['district_id'],
-                    'market_id' => @$request->segment[0]['market_id'],
-                    'college_year' => @$request->segment[0]['college_year'],
-                    'college_major' => @$request->segment[0]['college_major'] ?: 0,
+                    'district_id' => @$request['segment'][0]['district_id'],
+                    'market_id' => @$request['segment'][0]['market_id'],
+                    'college_year' => @$request['segment'][0]['college_year'],
+                    'college_major' => @$request['segment'][0]['college_major'] ?: 0,
                 ];
                 break;
             case Segment::WORKING:
                 $segments[] = [
-                    'company' => $request->segment[0]['company'],
-                    'position' => $request->segment[0]['position'],
-                    'work' => $request->segment[0]['work'],
+                    'company' => $request['segment'][0]['company'],
+                    'position' => $request['segment'][0]['position'],
+                    'work' => $request['segment'][0]['work'],
                 ];
                 break;
         }
 
         $data = [
-            'title' => $request->title,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'sex' => $request->sex,
-            'year_birth' => $request->year_birth,
-            'country_id' => $request->country_id,
-            'city_id' => $request->city_id,
-            'district_id' => $request->district_id,
-            'address' => $request->address,
-            'segment_id' => $request->segment_id,
-            'source_type_id' => $request->source_type_id,
-            'source_id' => $request->source_id,
-            'issue' => $request->issue,
-            'consulting_detail' => json_encode($request->consulting_detail, JSON_UNESCAPED_UNICODE),
-            'consulting' => $request->consulting,
-            'potential' => $request->potential,
-            'date_registration' => Carbon::parse($request->date_registration)->format('Y-m-d'),
-            'product_category_id' => $request->product_category_id,
-            'product_id' => $request->product_id,
-            'contract' => $request->contract ? 1 : 0,
+            'title' => $request['title'],
+            'phone' => $request['phone'],
+            'email' => $request['email'],
+            'sex' => $request['sex'],
+            'year_birth' => $request['year_birth'],
+            'country_id' => $request['country_id'],
+            'city_id' => $request['city_id'],
+            'district_id' => $request['district_id'],
+            'address' => $request['address'],
+            'segment_id' => $request['segment_id'],
+            'source_type_id' => $request['source_type_id'],
+            'source_id' => $request['source_id'],
+            'issue' => $request['issue'],
+            'consulting_detail' => json_encode($request['consulting_detail'], JSON_UNESCAPED_UNICODE),
+            'consulting' => $request['consulting'],
+            'potential' => $request['potential'],
+            'date_registration' => Carbon::parse($request['date_registration'])->format('Y-m-d'),
+            'product_category_id' => $request['product_category_id'],
+            'product_id' => $request['product_id'],
+            'contract' => $request['contract'] ? 1 : 0,
             'manage_id' => $user->id,
-            'active' => Active::NEW,
+            'type' => Type::NEW,
+            'active' => Active::CARE,
             'active_date' => Carbon::now()->addDay($this->dayExpired)->format('Y-m-d')
         ];
 
@@ -112,11 +114,11 @@ class CustomerService
             $customer->segment()->create($segment);
         }
 
-        if ($request->source == Source::PARTNER) {
-            $this->businessPartnerService->updateStatus($request->source_detail);
-        }
+        // if ($request['source_id'] == Source::PARTNER) {
+        //     $this->businessPartnerService->updateStatus($request['source_detail']);
+        // }
 
-        $this->updateSingleStatus($user->id);
+        // $this->updateSingleStatus($user->id);
 
         return $customer;
     }
@@ -185,7 +187,7 @@ class CustomerService
 
                 $dateDiff = Carbon::today()->diffInDays($consultingDate);
 
-                if ($customer->contract && $customer->consulting != Consulting::CANCEL && $customer->active != Active::STUDENT && $dateDiff > 3) {
+                if ($customer->contract && $customer->consulting != Consulting::CANCEL && $customer->active != Active::CONTRACT && $dateDiff > 3) {
                     $contract_no_history++;
                 }
             }
@@ -214,15 +216,17 @@ class CustomerService
                 $contract_total++;
             }
 
-            if ($customer->contract && $customer->active == Active::STUDENT) {
+            if ($customer->contract && $customer->active == Active::CONTRACT) {
                 $contract_success++;
             }
 
-            if ($customer->active == Active::DEPOT) {
+            if ($customer->type == Type::DEPOT) {
                 $depot++;
-            } else if ($customer->active == Active::NEW) {
+            } else if ($customer->type == Type::NEW) {
                 $new++;
-            } else if ($customer->active == Active::STUDENT) {
+            }
+            
+            if ($customer->active == Active::CONTRACT) {
                 $success++;
             }
 
@@ -260,8 +264,8 @@ class CustomerService
     {
         $today = Carbon::today()->format('Y-m-d');
 
-        Customer::where('active', Active::NEW)
+        Customer::where('active', Type::NEW)
             ->whereDate('active_date', $today)
-            ->update(['active' => Active::DEPOT]);
+            ->update(['active' => Type::DEPOT]);
     }
 }

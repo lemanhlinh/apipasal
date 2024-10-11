@@ -79,28 +79,37 @@ class StudentController extends Controller
 
     public function store(Request $request)
     {
-        DB::beginTransaction();
-        try {
+        return $this->handleTransaction(function() use ($request) {
             $data = $this->studentService->store($request->all());
-
-            DB::commit();
             return response()->json(array(
                 'error' => false,
                 'data' => $data,
                 'result' => 'Đã thêm mới học viên!',
             ));
-        } catch (\Exception $ex) {
-            DB::rollBack();
-            Log::info([
-                'message' => $ex->getMessage(),
-                'line' => __LINE__,
-                'method' => __METHOD__
-            ]);
-            return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được học viên!',
-            ));
-        }
+        }, 'Chưa thêm được học viên!');
+        
+        // DB::beginTransaction();
+        // try {
+        //     $data = $this->studentService->store($request->all());
+
+        //     DB::commit();
+        //     return response()->json(array(
+        //         'error' => false,
+        //         'data' => $data,
+        //         'result' => 'Đã thêm mới học viên!',
+        //     ));
+        // } catch (\Exception $ex) {
+        //     DB::rollBack();
+        //     Log::info([
+        //         'message' => $ex->getMessage(),
+        //         'line' => __LINE__,
+        //         'method' => __METHOD__
+        //     ]);
+        //     return response()->json(array(
+        //         'error' => true,
+        //         'result' => 'Chưa thêm được học viên!',
+        //     ));
+        // }
     }
 
     public function detail(Request $request)

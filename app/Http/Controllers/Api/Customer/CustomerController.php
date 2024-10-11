@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Customer;
 use App\Http\Controllers\Controller;
 
 use App\Models\Customer\Customer;
-use App\Models\Customer\ChangeManagement;
+use App\Models\Customer\ChangeManager;
 use App\Models\Customer\CustomerStatus;
 
 use Illuminate\Http\Request;
@@ -16,6 +16,9 @@ use Illuminate\Support\Carbon;
 
 use App\Services\Business\BusinessPartnerService;
 use App\Services\Customer\CustomerService;
+
+use App\Constants\Customer\Active;
+use App\Constants\Customer\Type;
 
 class CustomerController extends Controller
 {
@@ -36,7 +39,7 @@ class CustomerController extends Controller
             ->where('manage_id', $user->id)
             ->with([
                 'management' => function ($query) {
-                    $query->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
+                    $query->select('id', 'name', 'department_id', 'email')->with(['department' => function ($query2) {
                         $query2->select('id', 'title')->with(['campuses' => function ($query3) {
                             $query3->select('campuses.id', 'campuses.code');
                         }]);
@@ -54,38 +57,26 @@ class CustomerController extends Controller
     }
 
     public function store(Request $request)
-    {
-        DB::beginTransaction();
-        try {
-
-            $customer = $this->customerService->store($request);
+    {  
+        return $this->handleTransaction(function() use ($request) {
+            $customer = $this->customerService->store($request->all());
 
             DB::commit();
             return response()->json(array(
                 'error' => false,
                 'data' => $customer,
-                'result' => 'Đã thêm mới khách hàng!',
+                'message' => 'Đã thêm mới khách hàng!',
             ));
-        } catch (\Exception $ex) {
-            DB::rollBack();
-            Log::info([
-                'message' => $ex->getMessage(),
-                'line' => __LINE__,
-                'method' => __METHOD__
-            ]);
-            return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được khách hàng!',
-            ));
-        }
+        }, 'Chưa thêm được khách hàng!');
     }
 
     public function detail(Request $request)
     {
+        $user = Auth::user();
         $data = Customer::where('phone', $request->telephone)
             ->with([
                 'management' => function ($query) {
-                    $query->select('id', 'name', 'department_id')->with(['department' => function ($queryDepartment) {
+                    $query->select('id', 'name', 'department_id', 'email')->with(['department' => function ($queryDepartment) {
                         $queryDepartment->select('id', 'title')->with(['campuses' => function ($queryCampus) {
                             $queryCampus->select('campuses.id', 'campuses.code');
                         }]);
@@ -125,7 +116,8 @@ class CustomerController extends Controller
         return response()->json(array(
             'error' => false,
             'message' => 'Thành công',
-            'data' => $data
+            'data' => $data,
+            'user_request_id' => $user->id
         ));
     }
 
@@ -220,91 +212,6 @@ class CustomerController extends Controller
         }, 'Xóa khách hàng thành công!', 'Xóa khách hàng không thành công!');
 
         return $handle;
-    }
-
-    private function handleTransaction(callable $callback, $successMessage = 'Thao tác thành công!', $errorMessage = 'Thao tác không thành công!')
-    {
-        DB::beginTransaction();
-        try {
-            $result = $callback();
-
-            DB::commit();
-
-            return response()->json(array(
-                'error' => false,
-                'message' => $successMessage,
-                'data' => $result
-            ));
-        } catch (\Exception $exception) {
-            Log::info([
-                'message' => $exception->getMessage(),
-                'line' => __LINE__,
-                'method' => __METHOD__
-            ]);
-
-            DB::rollBack();
-
-            return response()->json(array(
-                'error' => true,
-                'message' => $errorMessage,
-            ));
-        }
-    }
-
-    public function changeManagement(Request $request)
-    {
-        $user = Auth::user();
-        $customer = Customer::where('id', $request->id)->first();
-
-        if (!$customer || $customer->manage_id == $user->id || $customer->active != 0) {
-            return response()->json(array(
-                'error' => false,
-                'message' => 'Không tìm thấy khách hàng hoặc bạn không có quyền thay đổi quản lý khách hàng này!',
-                'data' => []
-            ));
-        }
-
-        $changeManagement = ChangeManagement::where('customer_id', $request->customer_id)
-            ->where('user_id', $user->id)
-            ->where('status', 0)
-            ->first();
-
-        if ($changeManagement) {
-            return response()->json(array(
-                'error' => false,
-                'message' => 'Bạn đã đề xuất thay đổi quản lý khách hàng này!',
-                'data' => []
-            ));
-        }
-
-        try {
-            $result = ChangeManagement::create([
-                'customer_id' => $request->customer_id,
-                'user_id' => $user->id,
-                'reason' => $customer->reason,
-            ]);
-
-            DB::commit();
-
-            return response()->json(array(
-                'error' => false,
-                'message' => "Đề xuất thay đổi thành công!",
-                'data' => $result
-            ));
-        } catch (\Exception $exception) {
-            Log::info([
-                'message' => $exception->getMessage(),
-                'line' => __LINE__,
-                'method' => __METHOD__
-            ]);
-
-            DB::rollBack();
-
-            return response()->json(array(
-                'error' => true,
-                'message' => "Đề xuất thay đổi không thành công!",
-            ));
-        }
     }
 
     public function statistics()

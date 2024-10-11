@@ -26,6 +26,7 @@ class CreateCustomerContractsTable extends Migration
             $table->unsignedBigInteger('promotion_id')->default(0);
             // $table->integer('offer_extra')->default(0);
             $table->unsignedBigInteger('manage_id');
+            $table->unsignedBigInteger('user_id');
           
             $table->unsignedBigInteger('amount');
             $table->unsignedBigInteger('amount_offer');

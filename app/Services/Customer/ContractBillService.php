@@ -14,6 +14,7 @@ class ContractBillService
 {
     public function store($request)
     {
+        $user = Auth::user();
         $data = [
             'contract_id' => $request['contract_id'],
             'bill_type' => $request['bill_type'] ?: 1,
@@ -22,6 +23,9 @@ class ContractBillService
             'bill_number' => $request['bill_number'],
             'date_payment' => Carbon::parse($request['date_payment'])->format('Y-m-d'),
             'note' => $request['note'],
+            'active' => $request['active'] ?: 0,
+            'user_create_id' => $user->id,
+            'user_accept_id' => 0
         ];
 
         $bill = ContractBill::create($data);

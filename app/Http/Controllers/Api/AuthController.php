@@ -132,7 +132,9 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'email' => $user->email,
-            'name' => $user->name
+            'name' => $user->name,
+            'department_name' => $user->department_name,
+            'campuses_name' => $user->campuses_name
         ]);
     }
 }

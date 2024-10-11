@@ -17,6 +17,7 @@ use App\Services\Customer\AdmissionService;
 use App\Constants\Customer\Source;
 use App\Constants\Customer\Consulting;
 use App\Constants\Customer\Active;
+use App\Constants\Customer\Type;
 use App\Constants\Customer\Segment;
 
 class StudentService
@@ -38,7 +39,8 @@ class StudentService
 
         $customer->update([
             'birthday' => $request['customer']['birthday'],
-            'active' => 2,
+            'active' => Active::CONTRACT,
+            'type' => Type::NEW,
             'active_date' => null
         ]);
 

@@ -25,39 +25,56 @@ class ContractController extends Controller
     {
         $user = Auth::user();
 
-        $data = Contract::orderBy('id', 'DESC')
+        $model = Contract::orderBy('id', 'DESC')
             ->where('manage_id', $user->id)
             ->orWhereHas('student.customer', function ($query) use ($user) {
                 $query->where('manage_id', $user->id);
             })
             ->with([
+                'product_category',
+                'product',
                 'management' => function ($query) {
-                    $query->select('id', 'name');
+                    $query->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
+                        $query2->select('id', 'title')->with(['campuses' => function ($query3) {
+                            $query3->select('campuses.id', 'campuses.code');
+                        }]);
+                    }]);
+                },
+                'user_create' => function ($query) {
+                    $query->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
+                        $query2->select('id', 'title')->with(['campuses' => function ($query3) {
+                            $query3->select('campuses.id', 'campuses.code');
+                        }]);
+                    }]);
                 },
                 'student' => function ($query) {
                     $query->with([
-                        'customer' => function ($queryCustomer) {
-                            $queryCustomer->with([
-                                'management' => function ($queryManagement) {
-                                    $queryManagement->select('id', 'name', 'department_id')->with(['department' => function ($query2) {
-                                        $query2->select('id', 'title')->with(['campuses' => function ($query3) {
-                                            $query3->select('campuses.id', 'campuses.code');
-                                        }]);
-                                    }]);
-                                }
-                            ]);
+                        'segment' => function ($query) {
+                            $query->with(['market']);
                         },
+                        'customer',
                     ]);
                 },
                 'bills'
-            ])
-            ->get();
+            ]);
+
+        $contracts = $model->paginate(20);
+
+        $totalPages = $contracts->lastPage();
+        $data = $contracts->items();
 
         foreach ($data as $contract) {
+            $contract->student->segment->parent = json_decode($contract->student->segment->parent);
             $contract->student->customer->source;
         }
 
-        return $data;
+        return response()->json(array(
+            'error' => false,
+            'data' => [
+                'data' => $data,
+                'total_pages' => $totalPages,
+            ],
+        ));
     }
 
     public function store(Request $request)
@@ -68,6 +85,7 @@ class ContractController extends Controller
             
             foreach ($request->contracts as $contract) {
                 $contract['student_id'] = $request->student_id;
+                $contract['active'] = 0;
                 $data [] = $this->contractService->store($contract);
             }
 

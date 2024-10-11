@@ -37,6 +37,7 @@ class ContractService
             "promotion_id" => $request->promotion_id,
             "offer_extra" => $request->offer_extra,
             "manage_id" => $request->manage_id,
+            "user_id" => $user->id,
             "amount" => $request->amount,
             "bill_number" => $request->bill_number,
             "date_payment" => Carbon::parse($request->date_payment)->format('Y-m-d'),
@@ -49,6 +50,7 @@ class ContractService
             $this->contractBillService->store([
                 'contract_id' => $contract->id,
                 'bill_type' => 1,
+                'active' => 0,
                 'transaction_type' => 1,
                 'amount_payment' => str_replace('.', '', $bill['amount_payment']),
                 'bill_number' => $bill['bill_number'],
