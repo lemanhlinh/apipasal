@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use App\Models\Campuses;
 
 class BusinessPartnerController extends Controller
 {
@@ -18,11 +19,26 @@ class BusinessPartnerController extends Controller
      */
     public function index()
     {
-        $query = BusinessPartner::with(['clue', 'campuses'])->orderBy('id', 'DESC');
+        $query = BusinessPartner::with(['clue'])->orderBy('id', 'DESC');
         if(request()->has('segment')) {
             $query->where('segment', request()->segment);
         }
+ 
         $partners = $query->paginate(10);
+
+        $campusesIds = [];
+        foreach($partners as $item) {
+            if($item->campuses_id != '0' && is_array(json_decode($item->campuses_id))) {
+                $campusesIds = array_merge($campusesIds, json_decode($item->campuses_id));
+                $campuses = Campuses::whereIn('id', $campusesIds)->get()->keyBy('id');
+            }
+        }
+        foreach ($partners as $partner) {
+            $partner->campuses = collect(json_decode($partner->campuses_id, true))->map(function ($id) use ($campuses) {
+                return $campuses->get($id);
+            });
+        }
+
         return response()->json(array(
             'data' => $partners,
         ));
@@ -50,7 +66,7 @@ class BusinessPartnerController extends Controller
 
         try {
             if (!$request->has('title')) {
-                return response()->json(['error' => 'Title is required'], 400);
+                return response()->json(['message' => 'Chưa nhập tên đối tác', 'success' => false], 200);
             }
             $title = $request->title;
             $phone = $request->phone;
@@ -91,9 +107,9 @@ class BusinessPartnerController extends Controller
 
             DB::commit();
             return  response()->json(array(
-                'error' => false,
+                'success' => true,
                 'data' => $partner,
-                'result' => 'Đã thêm mới đào tạo',
+                'message' => 'Đã thêm mới đối tác',
             ));
         } catch (\Exception $ex) {
             DB::rollBack();
@@ -103,8 +119,8 @@ class BusinessPartnerController extends Controller
                 'method' => __METHOD__
             ]);
             return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được đối tác',
+                'success' => false,
+                'message' => 'Chưa thêm được đối tác' . $ex->getMessage(),
             ));
         }
     }

@@ -11,22 +11,21 @@ class BusinessMarket extends Model
 
     protected $guarded = ['id'];
 
-    public function volume()
+    public function volumes()
     {
         return $this->hasMany(BusinessMarketVolume::class, 'market_id', 'id');
+    }
+    public function getTotalVolumeAttribute()
+    {
+        return $this->volumes->sum('total_student');
     }
     public function facebook()
     {
         return $this->hasMany(BusinessMarketFacebook::class, 'market_id', 'id');
     }
-    public function history()
+    public function histories()
     {
         return $this->hasMany(BusinessMarketHistory::class, 'market_id', 'id');
-    }
-
-    public function campuses()
-    {
-        return $this->hasOne(Campuses::class, 'id', 'campuses_id');
     }
 
     public function cities()
