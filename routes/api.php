@@ -48,185 +48,115 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
     Route::post('refresh', 'AuthController@refresh');
     Route::post('me', 'AuthController@me');
     Route::group(['middleware' => ['auth:api']], function () {
+        // Campuses
         Route::post('trung-tam', 'CampusesController@index')->middleware('permission:view_campuses');
-        Route::group(['middleware' => ['permission:create_campuses']], function () {
-            Route::post('check-tao-trung-tam', 'CampusesController@create');
-            Route::post('tao-trung-tam', 'CampusesController@store');
-        });
+        Route::post('check-tao-trung-tam', 'CampusesController@create')->middleware('permission:create_campuses');
+        Route::post('tao-trung-tam', 'CampusesController@store')->middleware('permission:create_campuses');
         Route::group(['middleware' => ['permission:edit_campuses']], function () {
             Route::post('update-trung-tam/{id}', 'CampusesController@update');
             Route::post('active-trung-tam/{id}', 'CampusesController@changeActive');
         });
+        Route::post('delete-trung-tam/{id}', 'CampusesController@delete')->middleware('permission:delete_campuses');
 
-        Route::group(['middleware' => ['permission:delete_campuses']], function () {
-            Route::post('delete-trung-tam/{id}', 'CampusesController@delete');
-        });
-
-        Route::group(['middleware' => ['permission:view_departments']], function () {
-            Route::post('phong-ban', 'DepartmentController@index');
-            Route::post('phong-ban-all', 'DepartmentController@listAll');
-            Route::post('phong-ban-phu/{id}', 'DepartmentController@listSub');
-        });
-        Route::group(['middleware' => ['permission:create_departments']], function () {
-            Route::post('tao-phong-ban', 'DepartmentController@store');
-        });
-
+        // Departments
+        Route::post('phong-ban', 'DepartmentController@index')->middleware('permission:view_departments');
+        Route::post('phong-ban-all', 'DepartmentController@listAll')->middleware('permission:view_departments');
+        Route::post('phong-ban-phu/{id}', 'DepartmentController@listSub')->middleware('permission:view_departments');
+        Route::post('tao-phong-ban', 'DepartmentController@store')->middleware('permission:create_departments');
         Route::group(['middleware' => ['permission:edit_departments']], function () {
             Route::post('active-phong-ban/{id}', 'DepartmentController@changeActive');
             Route::post('update-phong-ban/{id}', 'DepartmentController@update');
         });
-        Route::group(['middleware' => ['permission:delete_departments']], function () {
-            Route::post('delete-phong-ban/{id}', 'DepartmentController@delete');
-        });
+        Route::post('delete-phong-ban/{id}', 'DepartmentController@delete')->middleware('permission:delete_departments');
 
-        Route::group(['middleware' => ['permission:view_regencies']], function () {
-            Route::post('chuc-vu', [RegenciesController::class, 'index']);
-        });
-
-        Route::group(['middleware' => ['permission:create_regencies']], function () {
-            Route::post('tao-chuc-vu', [RegenciesController::class, 'store']);
-        });
+        // Regencies
+        Route::post('chuc-vu', [RegenciesController::class, 'index'])->middleware('permission:view_regencies');
+        Route::post('tao-chuc-vu', [RegenciesController::class, 'store'])->middleware('permission:create_regencies');
         Route::group(['middleware' => ['permission:edit_regencies']], function () {
             Route::post('active-chuc-vu/{id}', [RegenciesController::class, 'changeActive']);
             Route::post('update-chuc-vu/{id}', [RegenciesController::class, 'update']);
         });
-        Route::group(['middleware' => ['permission:delete_regencies']], function () {
-            Route::post('delete-chuc-vu/{id}', [RegenciesController::class, 'delete']);
-        });
+        Route::post('delete-chuc-vu/{id}', [RegenciesController::class, 'delete'])->middleware('permission:delete_regencies');
 
-        Route::group(['middleware' => ['permission:view_permissions']], function () {
-            Route::post('all-permission', [PermissionController::class, 'index']);
-            Route::post('role-permission', [PermissionController::class, 'rolePermission']);
-        });
-        Route::group(['middleware' => ['permission:view_permissions']], function () {
-            Route::post('save-permission', [PermissionController::class, 'savePermission']);
-        });
-        Route::group(['middleware' => ['permission:delete_permissions']], function () {
-            Route::post('delete-permission', [PermissionController::class, 'deletePermission']);
-        });
+        // Permissions
+        Route::post('all-permission', [PermissionController::class, 'index'])->middleware('permission:view_permissions');
+        Route::post('role-permission', [PermissionController::class, 'rolePermission'])->middleware('permission:view_permissions');
+        Route::post('save-permission', [PermissionController::class, 'savePermission'])->middleware('permission:view_permissions');
+        Route::post('delete-permission', [PermissionController::class, 'deletePermission'])->middleware('permission:delete_permissions');
 
-        Route::group(['middleware' => ['permission:view_user']], function () {
-            Route::post('nhan-vien', [UserController::class, 'index']);
-        });
-        Route::group(['middleware' => ['permission:create_user']], function () {
-            Route::post('tao-nhan-vien', [UserController::class, 'store']);
-        });
+        // Users
+        Route::post('nhan-vien', [UserController::class, 'index'])->middleware('permission:view_user');
+        Route::post('tao-nhan-vien', [UserController::class, 'store'])->middleware('permission:create_user');
         Route::group(['middleware' => ['permission:edit_user']], function () {
             Route::post('active-nhan-vien/{id}', [UserController::class, 'changeActive']);
             Route::post('update-nhan-vien/{id}', [UserController::class, 'update']);
         });
-        Route::group(['middleware' => ['permission:delete_user']], function () {
-            Route::post('xoa-nhan-vien/{id}', [UserController::class, 'delete']);
-        });
+        Route::post('xoa-nhan-vien/{id}', [UserController::class, 'delete'])->middleware('permission:delete_user');
 
-        Route::group(['middleware' => ['permission:view_course_categories']], function () {
-            Route::post('nhom-khoa-hoc', [CourseCategoriesController::class, 'index']);
-        });
-        Route::group(['middleware' => ['permission:create_course_categories']], function () {
-            Route::post('tao-nhom-khoa-hoc', [CourseCategoriesController::class, 'store']);
-        });
+        // Course Categories
+        Route::post('nhom-khoa-hoc', [CourseCategoriesController::class, 'index'])->middleware('permission:view_course_categories');
+        Route::post('tao-nhom-khoa-hoc', [CourseCategoriesController::class, 'store'])->middleware('permission:create_course_categories');
         Route::group(['middleware' => ['permission:edit_course_categories']], function () {
             Route::post('active-nhom-khoa-hoc/{id}', [CourseCategoriesController::class, 'changeActive']);
             Route::post('update-nhom-khoa-hoc/{id}', [CourseCategoriesController::class, 'update']);
         });
-        Route::group(['middleware' => ['permission:delete_course_categories']], function () {
-            Route::post('delete-nhom-khoa-hoc/{id}', [CourseCategoriesController::class, 'delete']);
-        });
+        Route::post('delete-nhom-khoa-hoc/{id}', [CourseCategoriesController::class, 'delete'])->middleware('permission:delete_course_categories');
 
-        Route::group(['middleware' => ['permission:view_courses']], function () {
-            Route::post('khoa-hoc', [CoursesController::class, 'index']);
-        });
-        Route::group(['middleware' => ['permission:create_courses']], function () {
-            Route::post('tao-khoa-hoc', [CoursesController::class, 'store']);
-        });
+        // Courses
+        Route::post('khoa-hoc', [CoursesController::class, 'index'])->middleware('permission:view_courses');
+        Route::post('tao-khoa-hoc', [CoursesController::class, 'store'])->middleware('permission:create_courses');
         Route::group(['middleware' => ['permission:edit_courses']], function () {
             Route::post('active-khoa-hoc/{id}', [CoursesController::class, 'changeActive']);
             Route::post('update-khoa-hoc/{id}', [CoursesController::class, 'update']);
         });
-        Route::group(['middleware' => ['permission:delete_courses']], function () {
-            Route::post('delete-khoa-hoc/{id}', [CoursesController::class, 'delete']);
-        });
+        Route::post('delete-khoa-hoc/{id}', [CoursesController::class, 'delete'])->middleware('permission:delete_courses');
 
-        Route::group(['middleware' => ['permission:view_product_categories']], function () {
-            Route::post('nhom-san-pham', [ProductCategoriesController::class, 'index']);
-        });
-        Route::group(['middleware' => ['permission:create_product_categories']], function () {
-            Route::post('tao-nhom-san-pham', [ProductCategoriesController::class, 'store']);
-        });
+        // Product Categories
+        Route::post('nhom-san-pham', [ProductCategoriesController::class, 'index'])->middleware('permission:view_product_categories');
+        Route::post('tao-nhom-san-pham', [ProductCategoriesController::class, 'store'])->middleware('permission:create_product_categories');
         Route::group(['middleware' => ['permission:edit_product_categories']], function () {
             Route::post('update-nhom-san-pham/{id}', [ProductCategoriesController::class, 'update']);
             Route::post('active-nhom-san-pham/{id}', [ProductCategoriesController::class, 'changeActive']);
         });
-        Route::group(['middleware' => ['permission:delete_product_categories']], function () {
-            Route::post('delete-nhom-san-pham/{id}', [ProductCategoriesController::class, 'delete']);
-        });
+        Route::post('delete-nhom-san-pham/{id}', [ProductCategoriesController::class, 'delete'])->middleware('permission:delete_product_categories');
 
-        
-        Route::group(['middleware' => ['permission:view_products']], function () {
-            Route::post('san-pham', [ProductsController::class, 'index']);
-        });
-        Route::group(['middleware' => ['permission:create_products']], function () {
-            Route::post('tao-san-pham', [ProductsController::class, 'store']);
-        });
+        // Products
+        Route::post('san-pham', [ProductsController::class, 'index'])->middleware('permission:view_products');
+        Route::post('tao-san-pham', [ProductsController::class, 'store'])->middleware('permission:create_products');
         Route::group(['middleware' => ['permission:edit_products']], function () {
             Route::post('active-san-pham/{id}', [ProductsController::class, 'changeActive']);
             Route::post('update-san-pham/{id}', [ProductsController::class, 'update']);
         });
-        Route::group(['middleware' => ['permission:delete_products']], function () {
-            Route::post('delete-san-pham/{id}', [ProductsController::class, 'delete']);
-        });
-        
-        Route::group(['middleware' => ['permission:view_day_shift_learn']], function () {
-            Route::post('thoi-gian-hoc', [DayShiftLearnController::class, 'index']);
-        });
-        
-        Route::group(['middleware' => ['permission:create_day_shift_learn']], function () {
-            Route::post('tao-thoi-gian-hoc', [DayShiftLearnController::class, 'store']);
-        });
-        
+        Route::post('delete-san-pham/{id}', [ProductsController::class, 'delete'])->middleware('permission:delete_products');
+
+        //thoi gian hoc
+        Route::post('thoi-gian-hoc', [DayShiftLearnController::class, 'index'])->middleware('permission:view_day_shift_learn');
+        Route::post('tao-thoi-gian-hoc', [DayShiftLearnController::class, 'store'])->middleware('permission:create_day_shift_learn');
         Route::group(['middleware' => ['permission:edit_calendar_learn']], function () {
             Route::post('update-thoi-gian-hoc/{id}', [DayShiftLearnController::class, 'update']);
             Route::post('active-thoi-gian-hoc/{id}', [DayShiftLearnController::class, 'changeActive']);
         });
-        
-        Route::group(['middleware' => ['permission:delete_day_shift_learn']], function () {
-            Route::post('xoa-thoi-gian-hoc/{id}', [DayShiftLearnController::class, 'destroy']);
-        });
-        
-        Route::group(['middleware' => ['permission:view_calendar_learn']], function () {
-            Route::post('lich-hoc', [CalendarLearnController::class, 'index']);
-        });
-        
+        Route::post('xoa-thoi-gian-hoc/{id}', [DayShiftLearnController::class, 'destroy'])->middleware('permission:delete_day_shift_learn');
+
+        //lich hoc
+        Route::post('lich-hoc', [CalendarLearnController::class, 'index'])->middleware('permission:view_calendar_learn');
         Route::group(['middleware' => ['permission:edit_calendar_learn']], function () {
             Route::post('update-lich-hoc/{id}', [CalendarLearnController::class, 'update']);
             Route::post('active-lich-hoc/{id}', [CalendarLearnController::class, 'changeActive']);
         });
-        
-        Route::group(['middleware' => ['permission:create_calendar_learn']], function () {
-            Route::post('tao-lich-hoc', [CalendarLearnController::class, 'store']);
-        });
-        
-        Route::group(['middleware' => ['permission:delete_day_shift_learn']], function () {
-            Route::post('xoa-lich-hoc/{id}', [CalendarLearnController::class, 'destroy']);
-        });
-        
-        Route::group(['middleware' => ['permission:view_time_study']], function () {
-            Route::post('ca-hoc', [TimeStudyController::class, 'index']);
-        });
-        
-        Route::group(['middleware' => ['permission:create_time_study']], function () {
-            Route::post('tao-ca-hoc', [TimeStudyController::class, 'store']);
-        });
-        
+        Route::post('tao-lich-hoc', [CalendarLearnController::class, 'store'])->middleware('permission:create_calendar_learn');
+        Route::post('xoa-lich-hoc/{id}', [CalendarLearnController::class, 'destroy'])->middleware('permission:delete_calendar_learn');
+
+        //Ca hoc
+        Route::post('ca-hoc', [TimeStudyController::class, 'index'])->middleware('permission:view_time_study');
+        Route::post('tao-ca-hoc', [TimeStudyController::class, 'store'])->middleware('permission:create_time_study');
         Route::group(['middleware' => ['permission:edit_time_study']], function () {
             Route::post('update-ca-hoc/{id}', [TimeStudyController::class, 'update']);
             Route::post('active-ca-hoc/{id}', [TimeStudyController::class, 'changeActive']);
         });
-        
-        Route::group(['middleware' => ['permission:delete_time_study']], function () {
-            Route::post('xoa-ca-hoc/{id}', [TimeStudyController::class, 'destroy']);
-        });
+        Route::post('xoa-ca-hoc/{id}', [TimeStudyController::class, 'destroy'])->middleware('permission:delete_time_study');
 
+        //Nguon khach hang
         Route::post('nguon-khach-hang', 'BusinessSettingSourceCustomerController@index');
         Route::post('tao-nguon-khach-hang', 'BusinessSettingSourceCustomerController@store');
         Route::post('active-nguon-khach-hang/{id}', 'BusinessSettingSourceCustomerController@changeActive');
@@ -242,10 +172,12 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('active-ngay-vao-kho/{id}', 'BusinessSettingWareHouseRuleController@changeActive');
         Route::post('update-ngay-vao-kho/{id}', 'BusinessSettingWareHouseRuleController@update');
 
-        Route::post('doi-tac', [BusinessPartnerController::class, 'index']);
-        Route::post('chi-tiet-doi-tac/{id}', [BusinessPartnerController::class, 'edit']);
-        Route::post('tao-doi-tac', [BusinessPartnerController::class, 'store']);
+        Route::post('doi-tac', [BusinessPartnerController::class, 'index'])->middleware('permission:view_partners');
+        Route::post('chi-tiet-doi-tac/{id}', [BusinessPartnerController::class, 'edit'])->middleware('permission:edit_partners');
+        Route::post('tao-doi-tac', [BusinessPartnerController::class, 'store'])->middleware('permission:create_partners');
         Route::post('update-doi-tac/{id}', [BusinessPartnerController::class, 'update']);
+        Route::post('active-doi-tac/{id}', [BusinessPartnerController::class, 'changeActive']);
+        Route::post('delete-doi-tac/{id}', [BusinessPartnerController::class, 'delete']);
 
         Route::post('thi-truong', [BusinessMarketController::class, 'index']);
         Route::post('thi-truong-theo-hoc-vien', [BusinessMarketController::class, 'topHocVienThiTruong']);
@@ -267,6 +199,8 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('chi-tiet-chinh-sach/{id}', [BusinessPolicyController::class, 'edit']);
         Route::post('tao-chinh-sach', [BusinessPolicyController::class, 'store']);
         Route::post('update-chinh-sach/{id}', [BusinessPolicyController::class, 'update']);
+        Route::post('delete-chinh-sach/{id}', [BusinessPolicyController::class, 'delete']);
+        Route::post('active-chinh-sach/{id}', [BusinessPolicyController::class, 'changeActive']);
 
         # Customer\Customer
         Route::post('khach-hang/them-khach-hang', [CustomerController::class, 'store']);

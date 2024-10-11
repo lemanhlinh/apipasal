@@ -21,8 +21,8 @@ class Products extends Model
         return $this->belongsToMany(Courses::class,'product_course','product_id','course_id')->withPivot('ordering');
     }
 
-    public function businessPolicyProduct()
+    public function businessPolicyProducts()
     {
-        return $this->belongsToMany(BusinessPolicyProduct::class);
+        return $this->hasMany(BusinessPolicyProduct::class, 'product_id');
     }
 }

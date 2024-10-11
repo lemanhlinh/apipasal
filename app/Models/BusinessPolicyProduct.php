@@ -11,8 +11,8 @@ class BusinessPolicyProduct extends Model
 
     protected $table = 'business_policy_product';
 
-    public function products()
+    public function product()
     {
-        return $this->belongsToMany(Products::class);
+        return $this->belongsTo(Products::class, 'product_id');
     }
 }
