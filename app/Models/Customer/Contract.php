@@ -36,6 +36,11 @@ class Contract extends Model
         return $this->belongsTo(User::class, 'manage_id', 'id');
     }
 
+    public function user_create()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
     public function special()
     {
         return $this->belongsTo(BusinessPolicy::class, 'special_id', 'id');

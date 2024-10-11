@@ -12,12 +12,12 @@ use App\Http\Controllers\Api\BusinessSpendingController;
 use App\Http\Controllers\Api\BusinessPolicyController;
 use App\Http\Controllers\Api\BusinessPartnerController;
 
-use App\Http\Controllers\Api\CustomerCustomerController;
-
 use App\Http\Controllers\Api\Customer\CustomerController;
+use App\Http\Controllers\Api\Customer\ChangeManagerController;
 use App\Http\Controllers\Api\Customer\DemoController;
 use App\Http\Controllers\Api\Customer\StudentController;
 use App\Http\Controllers\Api\Customer\ContractController;
+use App\Http\Controllers\Api\Customer\BillController;
 
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\PermissionController;
@@ -273,8 +273,12 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('khach-hang/danh-sach-khach-hang', [CustomerController::class, 'index']);
         Route::post('khach-hang/cap-nhat-khach-hang', [CustomerController::class, 'update']);
         Route::post('khach-hang/chi-tiet-khach-hang', [CustomerController::class, 'detail']);
-        Route::post('khach-hang/doi-quan-ly-khach-hang', [CustomerController::class, 'changeManagement']);
         Route::post('khach-hang/thong-ke-khach-hang', [CustomerController::class, 'statistics']);
+
+        # Customer\ChangeManager
+        Route::post('khach-hang/doi-quan-ly/danh-sach', [ChangeManagerController::class, 'index']);
+        Route::post('khach-hang/doi-quan-ly/them', [ChangeManagerController::class, 'store']);
+        Route::post('khach-hang/doi-quan-ly/cap-nhat', [ChangeManagerController::class, 'update']);
 
         # Customer\Demo
         Route::post('khach-hang/danh-sach-demo-trai-nghiem', [DemoController::class, 'index']);
@@ -293,6 +297,12 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('khach-hang/hop-dong/them', [ContractController::class, 'store']);
         Route::post('khach-hang/hop-dong/cap-nhat', [ContractController::class, 'update']);
         Route::post('khach-hang/hop-dong/thong-ke', [ContractController::class, 'statistics']);
+
+        # Customer\Bill
+        Route::post('khach-hang/hoa-don/danh-sach', [BillController::class, 'index']);
+        Route::post('khach-hang/hoa-don/them', [BillController::class, 'store']);
+        Route::post('khach-hang/hoa-don/cap-nhat', [BillController::class, 'update']);
+        Route::post('khach-hang/hoa-don/xoa', [BillController::class, 'remove']);
 
 
 

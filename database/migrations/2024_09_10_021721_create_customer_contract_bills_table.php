@@ -22,6 +22,8 @@ class CreateCustomerContractBillsTable extends Migration
             $table->string('bill_number')->comment('Mã số phiếu thu');
             $table->date('date_payment')->comment('Ngày đóng tiền');
             $table->text('note')->comment('Ghi chú');
+            $table->unsignedBigInteger('user_create_id');
+            $table->unsignedBigInteger('user_accept_id')->default(0);
             $table->timestamps();
         });
     }

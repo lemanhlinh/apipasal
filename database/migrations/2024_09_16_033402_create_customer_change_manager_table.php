@@ -18,6 +18,7 @@ class CreateCustomerChangeManagerTable extends Migration
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('new_user_id');
             $table->unsignedBigInteger('old_user_id');
+            $table->unsignedBigInteger('user_accept_id')->default(0);
             $table->text('reason');
             $table->text('admin_reason')->nullable();
             $table->tinyInteger('status')->comment('0: Chờ duyệt, 1: Duyệt 2: Hủy');

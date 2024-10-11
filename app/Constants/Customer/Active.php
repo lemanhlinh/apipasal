@@ -4,7 +4,6 @@ namespace App\Constants\Customer;
 
 class Active
 {
-    public const DEPOT = 0;
-    public const NEW = 1;
-    public const STUDENT = 2;
+    public const CARE = 1;
+    public const CONTRACT = 2;
 }
