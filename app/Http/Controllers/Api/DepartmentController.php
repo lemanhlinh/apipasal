@@ -21,9 +21,19 @@ class DepartmentController extends Controller
     {
         $campus_id = request()->campus_id;
         if($campus_id) {
-            $departments = Department::with(['user_manage','users','regencies','campuses'])->whereHas('campuses', function($query) use ($campus_id) {
-                $query->where('campuses.id', $campus_id);
-            })->orderBy('id', 'DESC')->get()->toTree();
+
+            $departments = Department::with(['user_manage','users','regencies','campuses'])->orderBy('id', 'DESC')->get()->toTree();
+            
+            $filter_departments = [];
+            foreach($departments as $item) {
+                foreach($item->campuses as $val) {
+                    if($val->id == $campus_id) {
+                        $filter_departments[] = $item;
+                        break;
+                    }
+                }
+            }
+            $departments = $filter_departments;
         } else {
             $departments = Department::with(['user_manage','users','regencies','campuses'])->orderBy('id', 'DESC')->get()->toTree();
         }
@@ -45,6 +55,7 @@ class DepartmentController extends Controller
 
         return $departments;
     }
+
 
     public function listAll()
     {

@@ -24,13 +24,13 @@ class CampusesController extends Controller
     {
 
         $user = Auth::user();
-        $filter = request()->input('filter');
+        $all = request()->input('all');
 
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        if ($user->department_id && $filter) {
+        if ($user->department_id && $all == 0) {
 
             $departmentDetail = Department::find($user->department_id);
             $department_id = $departmentDetail->id;
@@ -45,8 +45,6 @@ class CampusesController extends Controller
                 $q->withCount('users');
             }])->orderBy('id', 'DESC')->get();
         }
-
-
 
         foreach ($campuses as $campus) {
             $totalUsersCount = 0;

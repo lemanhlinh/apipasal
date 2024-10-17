@@ -31,6 +31,9 @@ use App\Http\Controllers\Api\ProductsController;
 use App\Http\Controllers\Api\DayShiftLearnController;
 use App\Http\Controllers\Api\CalendarLearnController;
 use App\Http\Controllers\Api\TimeStudyController;
+
+use App\Http\Controllers\Api\DepartmentController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -59,15 +62,15 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('delete-trung-tam/{id}', 'CampusesController@delete')->middleware('permission:delete_campuses');
 
         // Departments
-        Route::post('phong-ban', 'DepartmentController@index')->middleware('permission:view_departments');
-        Route::post('phong-ban-all', 'DepartmentController@listAll')->middleware('permission:view_departments');
-        Route::post('phong-ban-phu/{id}', 'DepartmentController@listSub')->middleware('permission:view_departments');
-        Route::post('tao-phong-ban', 'DepartmentController@store')->middleware('permission:create_departments');
+        Route::post('phong-ban', [DepartmentController::class, 'index'])->middleware('permission:view_departments');
+        Route::post('phong-ban-all', [DepartmentController::class, 'listAll'])->middleware('permission:view_departments');
+        Route::post('phong-ban-phu/{id}', [DepartmentController::class, 'listSub'])->middleware('permission:view_departments');
+        Route::post('tao-phong-ban', [DepartmentController::class, 'store'])->middleware('permission:create_departments');
         Route::group(['middleware' => ['permission:edit_departments']], function () {
-            Route::post('active-phong-ban/{id}', 'DepartmentController@changeActive');
-            Route::post('update-phong-ban/{id}', 'DepartmentController@update');
+            Route::post('active-phong-ban/{id}', [DepartmentController::class, 'changeActive']);
+            Route::post('update-phong-ban/{id}', [DepartmentController::class, 'update']);
         });
-        Route::post('delete-phong-ban/{id}', 'DepartmentController@delete')->middleware('permission:delete_departments');
+        Route::post('delete-phong-ban/{id}', [DepartmentController::class, 'delete'])->middleware('permission:delete_departments');
 
         // Regencies
         Route::post('chuc-vu', [RegenciesController::class, 'index'])->middleware('permission:view_regencies');
@@ -194,6 +197,8 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('chi-tiet-chi-tieu/{id}', [BusinessSpendingController::class, 'edit']);
         Route::post('tao-chi-tieu', [BusinessSpendingController::class, 'store']);
         Route::post('update-chi-tieu/{id}', [BusinessSpendingController::class, 'update']);
+        Route::post('active-chi-tieu/{id}', [BusinessSpendingController::class, 'changeActive']);
+        Route::post('delete-chi-tieu/{id}', [BusinessSpendingController::class, 'delete']);
 
         Route::post('chinh-sach', [BusinessPolicyController::class, 'index']);
         Route::post('chi-tiet-chinh-sach/{id}', [BusinessPolicyController::class, 'edit']);
