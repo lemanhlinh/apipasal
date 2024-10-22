@@ -11,6 +11,3 @@ class CampusesDepartment extends Model
 
     protected $table = 'campuses_department';
 }
-
-
-

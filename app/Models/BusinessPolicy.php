@@ -11,14 +11,24 @@ class BusinessPolicy extends Model
 
     protected $guarded = ['id'];
     protected $table = 'business_policy';
+    protected $filable = [
+        'title',
+        'type_promotion',
+        'promotion',
+        'date_start',
+        'date_end',
+        'active',
+        'type'
+    ];
 
     public function campuses()
     {
-        return $this->belongsToMany(Campuses::class);
+        return $this->belongsToMany(Campuses::class, 'business_policy_campuses', 'business_policy_id', 'campuses_id');
     }
 
-    public function businessPolicyProduct()
+    public function businessPolicyProducts()
     {
-        return $this->hasMany(BusinessPolicyProduct::class);
+        return $this->hasMany(BusinessPolicyProduct::class, 'business_policy_id');
     }
+
 }

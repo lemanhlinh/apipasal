@@ -31,8 +31,8 @@ class Campuses extends Model
         return $this->belongsToMany(Department::class);
     }
 
-    public function businessPolicy()
+    public function businessPolicies()
     {
-        return $this->belongsToMany(BusinessPolicy::class);
+        return $this->belongsToMany(BusinessPolicy::class, 'business_policy_campuses', 'campuses_id', 'business_policy_id');
     }
 }

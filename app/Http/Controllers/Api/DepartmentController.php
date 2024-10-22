@@ -19,9 +19,43 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $departments = Department::with(['user_manage','users','regencies','campuses'])->whereIsRoot()->orderBy('id', 'DESC')->get();
+        $campus_id = request()->campus_id;
+        if($campus_id) {
+
+            $departments = Department::with(['user_manage','users','regencies','campuses'])->orderBy('id', 'DESC')->get()->toTree();
+            
+            $filter_departments = [];
+            foreach($departments as $item) {
+                foreach($item->campuses as $val) {
+                    if($val->id == $campus_id) {
+                        $filter_departments[] = $item;
+                        break;
+                    }
+                }
+            }
+            $departments = $filter_departments;
+        } else {
+            $departments = Department::with(['user_manage','users','regencies','campuses'])->orderBy('id', 'DESC')->get()->toTree();
+        }
+
+        foreach ($departments as $department){
+            $department->title_rename = $department->title;
+            if ($department->children){
+                $traverse = function ($categories, $prefix = '-') use (&$traverse) {
+                    foreach ($categories as $category) {
+                        $category->title_rename = $prefix.' '.$category->title;
+                        $traverse($category->children, $prefix.'-');
+                    }
+                };
+
+                $traverse($department->children);
+            }
+        }
+        $departments = $this->flattenChildren($departments);
+
         return $departments;
     }
+
 
     public function listAll()
     {

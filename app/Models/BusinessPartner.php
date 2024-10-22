@@ -20,6 +20,7 @@ class BusinessPartner extends Model
         'segment',
         'info_partner',
         'campuses_id',
+        'active'
     ];
     public function clue()
     {
