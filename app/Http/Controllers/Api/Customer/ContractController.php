@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api\Customer;
 
+use App\Constants\Customer\BillTransaction;
+use App\Constants\Customer\BillType;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 use App\Models\Customer\Contract;
 
@@ -55,18 +58,27 @@ class ContractController extends Controller
                         'customer',
                     ]);
                 },
-                'bills'
+                'bills' => function ($query) {
+                    $query->where('active', 1);
+                },
+                'debts' => function ($query) {
+                    $query->orderBy('date', 'desc');
+                },
             ]);
 
         $contracts = $model->paginate(20);
 
+        foreach ($contracts as $contract) {
+            $contract->updateDebtsAmountReal();
+        }
+
         $totalPages = $contracts->lastPage();
-        $data = $contracts->items();
+        $data = $contracts->items();       
 
         foreach ($data as $contract) {
             $contract->student->segment->parent = json_decode($contract->student->segment->parent);
-            $contract->student->customer->source;
-        }
+            $contract->student->customer->source; 
+        } 
 
         return response()->json(array(
             'error' => false,

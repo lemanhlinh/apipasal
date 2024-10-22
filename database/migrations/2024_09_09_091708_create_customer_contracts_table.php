@@ -33,6 +33,8 @@ class CreateCustomerContractsTable extends Migration
             $table->unsignedBigInteger('amount_special');
             $table->unsignedBigInteger('amount_promotion');
 
+            $table->tinyInteger('active')->default(1)->comment('1: Active; 0: Hủy');
+
             // $table->string('bill_number')->nullable()->comment('Mã số phiếu thu');
             // $table->date('date_payment')->comment('Ngày đóng tiền');
             // $table->text('note')->comment('Ghi chú');

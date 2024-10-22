@@ -39,10 +39,10 @@ class CreateCustomerCustomerTable extends Migration
             $table->text('issue')->nullable()->comment('Vấn đề - Nhu cầu');
             $table->json('consulting_detail')->nullable()->comment('Lịch sử chăm sóc');
             $table->tinyInteger('consulting')->default(1)->comment('Trạng thái tư vấn; 1: Tiếp cận; 2: Tư vấn: 3: Xử lý từ chối; 4: Chăm sóc sau: 5: Bỏ');
-            $table->timestamp('consulting_date')->nullable()->comment('Ngày chăm sóc gần nhất');
+            $table->date('consulting_date')->nullable()->comment('Ngày chăm sóc gần nhất');
             $table->tinyInteger('potential')->default(1)->comment('Độ tiềm năng; 1: Thấp; 2: Trung bình; 3: Cao');
             
-            $table->timestamp('date_registration')->nullable()->comment('Cơ hội hợp đồng - Ngày đăng ký dự kiến');
+            $table->date('date_registration')->nullable()->comment('Cơ hội hợp đồng - Ngày đăng ký dự kiến');
             $table->integer('product_category_id')->nullable()->comment('Cơ hội hợp đồng - Nhóm sản phẩm dự kiến');
             $table->integer('product_id')->nullable()->comment('Cơ hội hợp đồng - Sản phẩm dự kiến');
             $table->tinyInteger('contract')->default(0)->comment('Cơ hội hợp đồng');

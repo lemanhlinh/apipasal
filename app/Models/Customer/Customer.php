@@ -12,7 +12,8 @@ use App\Models\Cities;
 use App\Models\Countries;
 use App\Models\Districts;
 use App\Constants\Customer\Source;
-
+use App\Models\ProductCategories;
+use App\Models\Products;
 use Illuminate\Support\Facades\Log;
 
 class Customer extends Model
@@ -68,5 +69,15 @@ class Customer extends Model
     public function district()
     {
         return $this->belongsTo(Districts::class, 'district_id', 'code');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Products::class, 'product_id');
+    }
+
+    public function product_category()
+    {
+        return $this->belongsTo(ProductCategories::class, 'product_category_id');
     }
 }

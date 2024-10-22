@@ -62,8 +62,10 @@ class ChangeManagerController extends Controller
     {
         $user = Auth::user();
         $customer = Customer::where('id', $request->customer_id)->first();
+        $newUserId = $request->new_user_id ? $request->new_user_id : $user->id;
+        $oldUserId = $request->new_user_id ? $user->id : $customer->manage_id;
 
-        if (!$customer || $customer->manage_id == $user->id || $customer->type != Type::DEPOT) {
+        if (!$customer || $newUserId == $oldUserId || (!$request->new_user_id && $customer->type != Type::DEPOT)) {
             return response()->json(array(
                 'error' => true,
                 'message' => 'Không tìm thấy khách hàng hoặc bạn không có quyền thay đổi quản lý khách hàng này!',
@@ -73,23 +75,23 @@ class ChangeManagerController extends Controller
 
         $changeManagement = ChangeManager::
             where('customer_id', $request->customer_id) 
-            ->where('new_user_id', $user->id)
+            ->where('new_user_id', $newUserId)
             ->where('status', 0)
             ->first();
 
         if ($changeManagement) {
             return response()->json(array(
                 'error' => true,
-                'message' => 'Bạn đã đề xuất thay đổi quản lý khách hàng này!',
+                'message' => 'Đã có đề xuất thay đổi quản lý khách hàng này!',
                 'data' => []
             ));
         }
 
-        return $this->handleTransaction(function() use ($request, $user, $customer) {
+        return $this->handleTransaction(function() use ($request, $newUserId, $oldUserId) {
             $result = ChangeManager::create([
                 'customer_id' => $request->customer_id,
-                'new_user_id' => $user->id,
-                'old_user_id' => $customer->manage_id,
+                'new_user_id' => $newUserId,
+                'old_user_id' => $oldUserId,
                 'reason' => $request->reason,
                 'status' => 0,
             ]);
