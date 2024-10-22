@@ -194,7 +194,8 @@ class BusinessMarketController extends Controller
     
                 $market->total_student = $array['total_student'];
                 $market->save();
-    
+                $data = $market;
+
                 if ($market->id) {
                     if (!empty($array['volumes'])) {
                         foreach ($array['volumes'] as $volume) {
@@ -228,7 +229,7 @@ class BusinessMarketController extends Controller
                         }
                     }
     
-                    return ['success' => true, 'message' => 'Thêm mới thị trường thành công'];
+                    return ['success' => true, 'message' => 'Thêm mới thị trường thành công', 'data' => $data];
                 }
     
                 return ['success' => false, 'message' => 'Chưa thêm được thị trường'];
@@ -253,11 +254,50 @@ class BusinessMarketController extends Controller
         return response()->json($facebook);
     }
 
+    public function add_group_facebook(Request $request)
+    {
+        $market_id = $request->input('market_id');
+        $title = $request->input('group');
+        $link = $request->input('link_fb');
+
+        $facebookGroup = new BusinessMarketFacebook();
+        $facebookGroup->market_id = $market_id;
+        $facebookGroup->title = $title;
+        $facebookGroup->link = $link;
+        $facebookGroup->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Nhóm facebook đã được thêm thành công!',
+            'data' => $facebookGroup
+        ], 201);
+    }
+
     function history_market(Request $request)
     {
         $market_id = $request->input('market_id');
         $histories = BusinessMarketHistory::where('market_id', $market_id)->get();
         return response()->json($histories);
+    }
+
+    public function add_history_market() {
+        $market_id = request()->input('market_id');
+        $time_action = request()->input('time_action');
+        $content = request()->input('content');
+
+        $historyItem = new BusinessMarketHistory();
+        $historyItem->time_action = $time_action;
+        $historyItem->content = $content;
+        $historyItem->content = $market_id;
+
+        $historyItem->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lịch sử hoạt động đã được thêm thành công!',
+            'data' => $historyItem
+        ], 201);
+
     }
 
     /**
@@ -378,5 +418,41 @@ class BusinessMarketController extends Controller
     {
         //
     }
+
+    public function changeActive($id)
+    {
+        $dataItem = BusinessMarket::findOrFail($id);
+        $dataItem->update(['active' => !$dataItem->active]);
+        return [
+            'success' => true,
+            'message' => 'Cập nhật trạng thái thành công'
+        ];
+    }
+
+    public function delete($id)
+    {
+        DB::beginTransaction();
+        try {
+            $data = BusinessMarket::findOrFail($id);
+            $data->delete();
+            DB::commit();
+            return response()->json(array(
+                'success' => true,
+                'message' => 'Đã xóa đối tác',
+            ));
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            \Log::info([
+                'message' => $ex->getMessage(),
+                'line' => __LINE__,
+                'method' => __METHOD__
+            ]);
+            return response()->json(array(
+                'success' => false,
+                'message' => 'Chưa xoá được đối tác',
+            ));
+        }
+    }
+
 }
 

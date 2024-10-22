@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\CalendarLearnController;
 use App\Http\Controllers\Api\TimeStudyController;
 
 use App\Http\Controllers\Api\DepartmentController;
+use App\Http\Controllers\Api\CampusesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,14 +53,14 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
     Route::post('me', 'AuthController@me');
     Route::group(['middleware' => ['auth:api']], function () {
         // Campuses
-        Route::post('trung-tam', 'CampusesController@index')->middleware('permission:view_campuses');
-        Route::post('check-tao-trung-tam', 'CampusesController@create')->middleware('permission:create_campuses');
-        Route::post('tao-trung-tam', 'CampusesController@store')->middleware('permission:create_campuses');
+        Route::post('trung-tam', [CampusesController::class, 'index'])->middleware('permission:view_campuses');
+        Route::post('check-tao-trung-tam', [CampusesController::class, 'create'])->middleware('permission:create_campuses');
+        Route::post('tao-trung-tam', [CampusesController::class, 'store'])->middleware('permission:create_campuses');
         Route::group(['middleware' => ['permission:edit_campuses']], function () {
-            Route::post('update-trung-tam/{id}', 'CampusesController@update');
-            Route::post('active-trung-tam/{id}', 'CampusesController@changeActive');
+            Route::post('update-trung-tam/{id}', [CampusesController::class, 'update']);
+            Route::post('active-trung-tam/{id}', [CampusesController::class, 'changeActive']);
         });
-        Route::post('delete-trung-tam/{id}', 'CampusesController@delete')->middleware('permission:delete_campuses');
+        Route::post('delete-trung-tam/{id}', [CampusesController::class, 'delete'])->middleware('permission:delete_campuses');
 
         // Departments
         Route::post('phong-ban', [DepartmentController::class, 'index'])->middleware('permission:view_departments');
@@ -191,7 +192,11 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('tao-thi-truong', [BusinessMarketController::class, 'store']);
         Route::post('group-facebook', [BusinessMarketController::class, 'group_facebook']);
         Route::post('history-market', [BusinessMarketController::class, 'history_market']);
+        Route::post('thi-truong/add-group-facebook', [BusinessMarketController::class, 'add_group_facebook']);
+        Route::post('thi-truong/add-history-market', [BusinessMarketController::class, 'add_history_market']);
         Route::post('thi-truong/cap-nhat/{id}', [BusinessMarketController::class, 'update']);
+        Route::post('active-thi-truong/{id}', [BusinessMarketController::class, 'changeActive']);
+        Route::post('delete-thi-truong/{id}', [BusinessMarketController::class, 'delete']);
 
         Route::post('chi-tieu', [BusinessSpendingController::class, 'index']);
         Route::post('chi-tiet-chi-tieu/{id}', [BusinessSpendingController::class, 'edit']);

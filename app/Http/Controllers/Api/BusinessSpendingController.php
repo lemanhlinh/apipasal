@@ -123,12 +123,15 @@ class BusinessSpendingController extends Controller
                 $spendingDepartment->spending_id = $businessSpending->id;
                 $spendingDepartment->department_id = (int)$department_id;
                 $spendingDepartment->save();
-                
             }
             DB::commit();
+
+            $savedData = BusinessSpending::with('spendingCampuses')->find($businessSpending->id);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Thêm mới chỉ tiêu thành công!'
+                'message' => 'Thêm mới chỉ tiêu thành công!',
+                'data' => $savedData
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
