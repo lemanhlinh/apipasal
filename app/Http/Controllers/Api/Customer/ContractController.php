@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api\Customer;
 
+use App\Constants\Customer\BillTransaction;
+use App\Constants\Customer\BillType;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 use App\Models\Customer\Contract;
 
@@ -55,18 +58,27 @@ class ContractController extends Controller
                         'customer',
                     ]);
                 },
-                'bills'
+                'bills' => function ($query) {
+                    $query->where('active', 1);
+                },
+                'debts' => function ($query) {
+                    $query->orderBy('date', 'desc');
+                },
             ]);
 
         $contracts = $model->paginate(20);
 
+        foreach ($contracts as $contract) {
+            $contract->updateDebtsAmountReal();
+        }
+
         $totalPages = $contracts->lastPage();
-        $data = $contracts->items();
+        $data = $contracts->items();       
 
         foreach ($data as $contract) {
             $contract->student->segment->parent = json_decode($contract->student->segment->parent);
-            $contract->student->customer->source;
-        }
+            $contract->student->customer->source; 
+        } 
 
         return response()->json(array(
             'error' => false,
@@ -79,8 +91,7 @@ class ContractController extends Controller
 
     public function store(Request $request)
     {
-        DB::beginTransaction();
-        try {
+        return $this->handleTransaction(function() use ($request) {
             $data = [];
             
             foreach ($request->contracts as $contract) {
@@ -89,26 +100,14 @@ class ContractController extends Controller
                 $data [] = $this->contractService->store($contract);
             }
 
-            DB::commit();
             return response()->json(array(
                 'error' => false,
                 'data' => [
                     'student_id' => $request->student_id,
                     'contracts' => $data
                 ],
-                'result' => 'Đã thêm mới khách hàng!',
+                'result' => 'Đã thêm mới hợp đồng!',
             ));
-        } catch (\Exception $ex) {
-            DB::rollBack();
-            Log::info([
-                'message' => $ex->getMessage(),
-                'line' => __LINE__,
-                'method' => __METHOD__
-            ]);
-            return response()->json(array(
-                'error' => true,
-                'result' => 'Chưa thêm được khách hàng!',
-            ));
-        }
+        }, 'Chưa thêm được hợp đồng!');
     }
 }

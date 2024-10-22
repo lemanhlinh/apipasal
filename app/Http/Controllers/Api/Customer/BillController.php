@@ -156,4 +156,17 @@ class BillController extends Controller
             ));
         }, 'Xóa hóa đơn không thành công!');
     }
+
+    public function store(Request $request)
+    {
+        return $this->handleTransaction(function() use ($request) {
+            $bill = $this->contractBillService->store($request->all());
+
+            return response()->json(array(
+                'error' => false,
+                'message' => 'Thêm mới hóa đơn thành công!',
+                'data' => $bill
+            ));
+        }, 'Thêm mới hóa đơn không thành công!');
+    }
 }

@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\ProductsController;
 
 use App\Http\Controllers\Api\DayShiftLearnController;
 use App\Http\Controllers\Api\CalendarLearnController;
+use App\Http\Controllers\Api\Customer\DebtController;
 use App\Http\Controllers\Api\TimeStudyController;
 
 use App\Http\Controllers\Api\DepartmentController;
@@ -218,6 +219,7 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('khach-hang/cap-nhat-khach-hang', [CustomerController::class, 'update']);
         Route::post('khach-hang/chi-tiet-khach-hang', [CustomerController::class, 'detail']);
         Route::post('khach-hang/thong-ke-khach-hang', [CustomerController::class, 'statistics']);
+        Route::post('khach-hang/lich-su-cap-nhat', [CustomerController::class, 'historyUpdate']);
 
         # Customer\ChangeManager
         Route::post('khach-hang/doi-quan-ly/danh-sach', [ChangeManagerController::class, 'index']);
@@ -248,7 +250,12 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('khach-hang/hoa-don/cap-nhat', [BillController::class, 'update']);
         Route::post('khach-hang/hoa-don/xoa', [BillController::class, 'remove']);
 
-
+        # Customer\Debt
+        Route::post('khach-hang/cong-no/them', [DebtController::class, 'store']);
+        Route::post('khach-hang/cong-no/cap-nhat', [DebtController::class, 'update']);
+        Route::post('khach-hang/cong-no/xoa', [DebtController::class, 'remove']);
+        Route::post('khach-hang/cong-no/thong-ke-nhanh', [DebtController::class, 'stats']);
+        Route::post('khach-hang/cong-no/du-bao', [DebtController::class, 'forecast']);
 
         Route::post('danh-sach-quoc-gia', 'CountriesController@index');
         Route::post('danh-sach-tinh-thanh', 'CitiesController@index');

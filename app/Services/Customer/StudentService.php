@@ -45,7 +45,7 @@ class StudentService
         ]);
 
         CustomerSegment::find($request['customer_segment_id'])->update([
-            'birthday' => @$request['segment']['sbirthday'] ? Carbon::parse($request['segment']['birthday'])->format('Y-m-d') : NULL,
+            'birthday' => @$request['segment']['birthday'] ? Carbon::parse($request['segment']['birthday'])->format('Y-m-d') : NULL,
             'telephone' => @$request['telephone'] ? $request['telephone'] : NULL,
         ]);
 
@@ -54,12 +54,15 @@ class StudentService
             'customer_segment_id' => $request['customer_segment_id']
         ]);
 
-        $request->student_id = $student->id;
-        $this->contractService->store($request);
+        foreach ($request['contracts'] as $contract) {
+            $contract['student_id'] = $student->id;
+            $contract['active'] = 0;
+            $this->contractService->store($contract);
+        }       
 
-        $this->admissionService->store($request);
+        // $this->admissionService->store($request);
 
-        $this->updateSingleStatus($user->id);
+        // $this->updateSingleStatus($user->id);
 
         return $student;
     }

@@ -17,6 +17,7 @@ use App\Constants\Customer\Active;
 use App\Constants\Customer\Type;
 use App\Constants\Customer\Segment;
 use App\Models\Customer\CustomerSegment;
+use App\Models\Customer\CustomerHistory;
 
 class CustomerService
 {
@@ -267,5 +268,33 @@ class CustomerService
         Customer::where('active', Type::NEW)
             ->whereDate('active_date', $today)
             ->update(['active' => Type::DEPOT]);
+    }
+
+    public function addHistory($data)
+    {
+        return CustomerHistory::create($data);
+    }
+
+    public function update($data, $customer)
+    {
+        $user = Auth::user();
+
+        foreach ($data as $field => $value) {
+            $fieldChange[] = $field;
+            $oldValue[] = $customer->$field;
+            $newValue[] = $value;
+        }
+
+        $this->addHistory([
+            'user_id' => $user->id,
+            'customer_id' => $customer->id,
+            'field' => json_encode($fieldChange, JSON_UNESCAPED_UNICODE),
+            'old_value' => json_encode($oldValue, JSON_UNESCAPED_UNICODE),
+            'new_value' => json_encode($newValue, JSON_UNESCAPED_UNICODE),
+        ]);
+
+        $customer->update($data);
+
+        return $customer;
     }
 }

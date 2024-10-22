@@ -19,6 +19,8 @@ use App\Services\Customer\CustomerService;
 
 use App\Constants\Customer\Active;
 use App\Constants\Customer\Type;
+use App\Models\Customer\CustomerHistory;
+use App\Models\Products;
 
 class CustomerController extends Controller
 {
@@ -57,8 +59,8 @@ class CustomerController extends Controller
     }
 
     public function store(Request $request)
-    {  
-        return $this->handleTransaction(function() use ($request) {
+    {
+        return $this->handleTransaction(function () use ($request) {
             $customer = $this->customerService->store($request->all());
 
             DB::commit();
@@ -123,73 +125,63 @@ class CustomerController extends Controller
 
     public function update(Request $request)
     {
-        // return response()->json(array(
-        //     'error' => false,
-        //     'message' => 'Cập nhật khách hàng thành công!',
-        //     'data' => $request->all()
-        // ));
+        $data = [];
 
-        DB::beginTransaction();
-        try {
-            $data = [];
+        if ($request->issue) {
+            $data['issue'] = $request->issue;
+        }
 
-            if ($request->issue) {
-                $data['issue'] = $request->issue;
-            }
+        if ($request->consulting) {
+            $data['consulting'] = $request->consulting;
+        }
 
-            if ($request->consulting) {
-                $data['consulting'] = $request->consulting;
-            }
+        if ($request->potential) {
+            $data['potential'] = $request->potential;
+        }
 
-            if ($request->potential) {
-                $data['potential'] = $request->potential;
-            }
+        if ($request->consulting_detail) {
+            $data['consulting_detail'] = json_encode($request->consulting_detail, JSON_UNESCAPED_UNICODE);
+        }
 
-            if ($request->consulting_detail) {
-                $data['consulting_detail'] = json_encode($request->consulting_detail);
-            }
+        if ($request->consulting_date) {
+            $data['consulting_date'] = Carbon::parse($request->consulting_date)->format('Y-m-d');
+        }
 
-            if ($request->consulting_date) {
-                $data['consulting_date'] = Carbon::createFromFormat('dmY', $request->consulting_date)->format('Y-m-d');
-            }
+        if (isset($request->contract)) {
+            $data['contract'] = $request->contract ? 1 : 0;
+        }
 
-            if (isset($request->contract)) {
-                $data['contract'] = $request->contract ? 1 : 0;
-            }
+        if ($request->product_id) {
+            $data['product_id'] = $request->product_id;
+        }
 
-            if ($request->product) {
-                $data['product'] = $request->product;
-            }
+        if ($request->product_category_id) {
+            $data['product_category_id'] = $request->product_category_id;
+        }
 
-            if ($request->product_category) {
-                $data['product_category'] = $request->product_category;
-            }
+        if ($request->date_registration) {
+            $data['date_registration'] = Carbon::parse($request->date_registration)->format('Y-m-d');
+        }
 
-            if ($request->date_registration) {
-                $data['date_registration'] = Carbon::createFromFormat('d/m/Y', $request->date_registration)->format('Y-m-d');
-            }
+        $customer = Customer::findOrFail($request->id);
 
-            $customer = Customer::findOrFail($request->id);
-
-            $customer->update($data);
-
-            DB::commit();
-            return response()->json(array(
-                'error' => false,
-                'message' => 'Cập nhật khách hàng thành công!',
-                'data' => $data
-            ));
-        } catch (\Exception $exception) {
-            Log::info([
-                'message' => $exception->getMessage(),
-                'line' => __LINE__,
-                'method' => __METHOD__
-            ]);
+        if (!$customer->id) {
             return response()->json(array(
                 'error' => true,
-                'message' => 'Cập nhật khách hàng không thành công!',
+                'message' => 'Không tìm thấy khách hàng!',
             ));
         }
+
+        $handle = $this->handleTransaction(function () use ($data, $customer) {
+            $update = $this->customerService->update($data, $customer);
+            return response()->json(array(
+                'error' => false,
+                'data' => $update,
+                'message' => 'Cập nhật khách hàng thành công!',
+            ));
+        }, 'Cập nhật khách hàng không thành công!');
+
+        return $handle;
     }
 
     public function destroy(Request $request)
@@ -239,6 +231,100 @@ class CustomerController extends Controller
             'error' => false,
             'message' => "Thành công!",
             'data' => $data
+        ));
+    }
+
+    public function historyUpdate(Request $request)
+    {
+        $customer_id = $request->customer_id;
+        $telephone = $request->telephone;
+
+        $data = CustomerHistory::
+            where(function ($query) use ($customer_id, $telephone) {
+                if ($telephone) {
+                    $customer = Customer::where('phone', $telephone)->first();
+                    $query->where('customer_id', $customer->id);
+                } else {
+                    $query->where('customer_id', $customer_id);
+                }
+                
+            })
+            ->with('user')
+            ->orderBy('id', 'DESC')
+            ->get();
+        
+        $history = [];
+        $productIds = [];
+        $productCategoryIds = [];
+
+        foreach ($data as $item) {
+            $fields = json_decode($item->field);
+            $oldValue = json_decode($item->old_value);
+            $newValue = json_decode($item->new_value);
+
+            $data = [];
+            foreach ($fields as $i => $field) {
+                if ($field == 'product_id') {
+                    $productIds[] = $oldValue[$i];
+                    $productIds[] = $newValue[$i];
+                }
+
+                if ($field == 'product_category_id') {
+                    $productCategoryIds[] = $oldValue[$i];
+                    $productCategoryIds[] = $newValue[$i];
+                }
+
+                $data[] = [
+                    'field' => $field,
+                    'old_value' => $oldValue[$i],
+                    'new_value' => $newValue[$i],
+                ];
+            }
+
+            $history[] = [
+                'id' => $item->id,
+                'customer_id' => $item->customer_id,
+                'user_id' => $item->user_id,
+                'user' => $item->user,
+                'created_at' => $item->created_at,
+                'data' => $data,
+            ];
+        }
+        
+        $productIds = array_filter(array_unique($productIds));
+        $productCategoryIds = array_filter(array_unique($productCategoryIds));
+
+        $products = Products::whereIn('id', $productIds)->get(); 
+        $productCategories = Products::whereIn('id', $productCategoryIds)->get();
+
+        foreach ($history as $ih => $itemHistory) {
+            foreach ($itemHistory['data'] as $id => $itemData) {
+                foreach ($products as $product) {
+                    if ($itemData['field'] == 'product_id' && $itemData['old_value'] == $product->id) {
+                        $history[$ih]['data'][$id]['old_value'] = $product->title;
+                    }
+
+                    if ($itemData['field'] == 'product_id' && $itemData['new_value'] == $product->id) {
+                        $history[$ih]['data'][$id]['new_value'] = $product->title;
+                    }
+                }
+
+                foreach ($productCategories as $productCategory) {
+                    if ($itemData['field'] == 'product_category_id' && $itemData['old_value'] == $productCategory->id) {
+                        $history[$ih]['data'][$id]['old_value'] = $productCategory->title;
+                    }
+
+                    if ($itemData['field'] == 'product_category_id' && $itemData['new_value'] == $productCategory->id) {
+                        $history[$ih]['data'][$id]['new_value'] = $productCategory->title;
+                    }
+                }
+            }
+        }
+
+        return response()->json(array(
+            'error' => false,
+            'message' => "Thành công!",
+            'data' => $history
         ));
     }
 }
