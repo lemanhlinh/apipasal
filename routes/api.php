@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\ProductsController;
 
 use App\Http\Controllers\Api\DayShiftLearnController;
 use App\Http\Controllers\Api\CalendarLearnController;
+use App\Http\Controllers\Api\Customer\ClassController;
 use App\Http\Controllers\Api\Customer\DebtController;
 use App\Http\Controllers\Api\TimeStudyController;
 
@@ -251,6 +252,12 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('khach-hang/cong-no/xoa', [DebtController::class, 'remove']);
         Route::post('khach-hang/cong-no/thong-ke-nhanh', [DebtController::class, 'stats']);
         Route::post('khach-hang/cong-no/du-bao', [DebtController::class, 'forecast']);
+
+        # Customer\Class
+        Route::post('khach-hang/lich-khai-giang', [ClassController::class, 'index']);
+        Route::post('khach-hang/lich-khai-giang/them', [ClassController::class, 'store']);
+        Route::post('khach-hang/lich-khai-giang/cap-nhat', [ClassController::class, 'update']);
+        Route::post('khach-hang/lich-khai-giang/lui-lich-khai-giang', [ClassController::class, 'addOpening']);
 
         Route::post('danh-sach-quoc-gia', 'CountriesController@index');
         Route::post('danh-sach-tinh-thanh', 'CitiesController@index');
