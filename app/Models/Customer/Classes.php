@@ -22,9 +22,14 @@ class Classes extends Model
     protected $guarded = ['id'];
     protected $appends = ['day_opening'];
 
+    public function contracts()
+    {
+        return $this->belongsToMany(Contract::class, 'customer_class_contract', 'class_id', 'contract_id');
+    }
+
     public function class()
     {
-        return $this->belongsTo(CampusesClassroom::class, 'class_id');
+        return $this->belongsTo(CampusesClassroom::class, 'classroom_id');
     }
 
     public function course()

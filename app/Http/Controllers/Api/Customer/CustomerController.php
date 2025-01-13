@@ -33,12 +33,23 @@ class CustomerController extends Controller
         $this->customerService = $customerService;
     }
 
-    public function index()
+    public function isDepot($cutomer)
+    {
+        return $cutomer->type == Type::DEPOT || ($cutomer->active_date && (Carbon::parse($cutomer->active_date)->isToday() || Carbon::parse($cutomer->active_date)->isPast()));
+    }
+
+    public function index(Request $request)
     {
         $user = Auth::user();
+        $contract = $request->contract;
 
         $customer = Customer::orderBy('id', 'DESC')
             ->where('manage_id', $user->id)
+            ->where(function ($query) use ($contract) {
+                if ($contract) {
+                    $query->where('contract', 1);
+                }
+            })
             ->with([
                 'management' => function ($query) {
                     $query->select('id', 'name', 'department_id', 'email')->with(['department' => function ($query2) {
@@ -108,8 +119,8 @@ class CustomerController extends Controller
             ->first();
 
         if ($data) {
-            $data->source_info;
-            $data->consulting_detail =  json_decode($data->consulting_detail);
+            $data->source;
+            $data->consulting_detail = json_decode($data->consulting_detail);
             foreach ($data->segment as $segmentItem) {
                 $segmentItem->parent = json_decode($segmentItem->parent);
             }
@@ -125,19 +136,17 @@ class CustomerController extends Controller
 
     public function update(Request $request)
     {
-        $data = [];
+        $user = Auth::user();
+        $customer = Customer::findOrFail($request->id);
 
-        if ($request->issue) {
-            $data['issue'] = $request->issue;
+        if (!$customer->id) {
+            return response()->json(array(
+                'error' => true,
+                'message' => 'Không tìm thấy khách hàng!',
+            ));
         }
 
-        if ($request->consulting) {
-            $data['consulting'] = $request->consulting;
-        }
-
-        if ($request->potential) {
-            $data['potential'] = $request->potential;
-        }
+        $data = $request->all();
 
         if ($request->consulting_detail) {
             $data['consulting_detail'] = json_encode($request->consulting_detail, JSON_UNESCAPED_UNICODE);
@@ -149,27 +158,17 @@ class CustomerController extends Controller
 
         if (isset($request->contract)) {
             $data['contract'] = $request->contract ? 1 : 0;
-        }
-
-        if ($request->product_id) {
-            $data['product_id'] = $request->product_id;
-        }
-
-        if ($request->product_category_id) {
-            $data['product_category_id'] = $request->product_category_id;
-        }
+        } 
 
         if ($request->date_registration) {
             $data['date_registration'] = Carbon::parse($request->date_registration)->format('Y-m-d');
         }
 
-        $customer = Customer::findOrFail($request->id);
-
-        if (!$customer->id) {
-            return response()->json(array(
-                'error' => true,
-                'message' => 'Không tìm thấy khách hàng!',
-            ));
+        if ($this->isDepot($customer)) {
+            $data['manage_id'] = $user->id;
+            $data['type'] = Type::NEW;
+            $data['active'] = Active::CARE;
+            $data['active_date'] = Carbon::now()->addDay(30)->format('Y-m-d'); 
         }
 
         $handle = $this->handleTransaction(function () use ($data, $customer) {
@@ -239,20 +238,18 @@ class CustomerController extends Controller
         $customer_id = $request->customer_id;
         $telephone = $request->telephone;
 
-        $data = CustomerHistory::
-            where(function ($query) use ($customer_id, $telephone) {
+        $data = CustomerHistory::where(function ($query) use ($customer_id, $telephone) {
                 if ($telephone) {
                     $customer = Customer::where('phone', $telephone)->first();
                     $query->where('customer_id', $customer->id);
                 } else {
                     $query->where('customer_id', $customer_id);
                 }
-                
             })
             ->with('user')
             ->orderBy('id', 'DESC')
             ->get();
-        
+
         $history = [];
         $productIds = [];
         $productCategoryIds = [];
@@ -290,11 +287,11 @@ class CustomerController extends Controller
                 'data' => $data,
             ];
         }
-        
+
         $productIds = array_filter(array_unique($productIds));
         $productCategoryIds = array_filter(array_unique($productCategoryIds));
 
-        $products = Products::whereIn('id', $productIds)->get(); 
+        $products = Products::whereIn('id', $productIds)->get();
         $productCategories = Products::whereIn('id', $productCategoryIds)->get();
 
         foreach ($history as $ih => $itemHistory) {
@@ -325,6 +322,36 @@ class CustomerController extends Controller
             'error' => false,
             'message' => "Thành công!",
             'data' => $history
+        ));
+    }
+
+    public function search(Request $request)
+    {
+        $user = Auth::user();
+
+        $data = Customer::select('id', 'title', 'phone', 'manage_id', 'segment_id', 'type', 'active_date', 'consulting', 'consulting_detail', 'consulting_date', 'created_at')
+            ->where('phone', 'like', "%$request->telephone%")
+            ->with([
+                'management' => function ($query) {
+                    $query->select('id', 'name', 'department_id', 'email')->with(['department' => function ($queryDepartment) {
+                        $queryDepartment->select('id', 'title')->with(['campuses' => function ($queryCampus) {
+                            $queryCampus->select('campuses.id', 'campuses.code');
+                        }]);
+                    }]);
+                }, 
+            ])
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        foreach ($data as $item) {
+            $item->consulting_detail =  json_decode($item->consulting_detail);
+            $item->user_search_id = $user->id;
+        }
+
+        return response()->json(array(
+            'error' => false,
+            'message' => 'Thành công',
+            'data' => $data
         ));
     }
 }

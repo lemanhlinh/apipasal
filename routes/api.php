@@ -216,6 +216,7 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('khach-hang/chi-tiet-khach-hang', [CustomerController::class, 'detail']);
         Route::post('khach-hang/thong-ke-khach-hang', [CustomerController::class, 'statistics']);
         Route::post('khach-hang/lich-su-cap-nhat', [CustomerController::class, 'historyUpdate']);
+        Route::post('khach-hang/tim-kiem', [CustomerController::class, 'search']);
 
         # Customer\ChangeManager
         Route::post('khach-hang/doi-quan-ly/danh-sach', [ChangeManagerController::class, 'index']);
@@ -223,9 +224,13 @@ Route::group(['middleware' => 'api', 'namespace' => 'Api'], function () {
         Route::post('khach-hang/doi-quan-ly/cap-nhat', [ChangeManagerController::class, 'update']);
 
         # Customer\Demo
-        Route::post('khach-hang/danh-sach-demo-trai-nghiem', [DemoController::class, 'index']);
-        Route::post('khach-hang/them-demo-trai-nghiem', [DemoController::class, 'store']);
-        Route::post('khach-hang/cap-nhat-demo-trai-nghiem', [DemoController::class, 'update']);
+        Route::post('khach-hang/demo/danh-sach', [DemoController::class, 'index']);
+        Route::post('khach-hang/demo/them', [DemoController::class, 'store']);
+        Route::post('khach-hang/demo/cap-nhat', [DemoController::class, 'update']);
+        Route::post('khach-hang/demo/xoa', [DemoController::class, 'remove']);
+        Route::post('khach-hang/demo/them-khach-hang', [DemoController::class, 'addCustomer']);
+        Route::post('khach-hang/demo/cap-nhat-khach-hang', [DemoController::class, 'updateCustomer']);
+        Route::post('khach-hang/demo/xoa-khach-hang', [DemoController::class, 'removeCustomer']);
 
         # Customer\Student
         Route::post('khach-hang/hoc-vien/danh-sach', [StudentController::class, 'index']);

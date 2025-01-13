@@ -49,7 +49,8 @@ class StudentController extends Controller
             'segment' => function ($query) {
                 $query->with(['market']);
             },
-        ]);
+        ])
+        ->orderBy('id', 'DESC');
 
         $telephone = $request->telephone;
 
@@ -78,7 +79,7 @@ class StudentController extends Controller
     }
 
     public function store(Request $request)
-    {
+    { 
         return $this->handleTransaction(function() use ($request) {
             $data = $this->studentService->store($request->all());
             return response()->json(array(
@@ -162,5 +163,11 @@ class StudentController extends Controller
     public function destroy(Request $request)
     {
         return 'Student Delete';
+    }
+
+    public function waiting(Request $request)
+    {
+        $students = Student::where('status', 0)->get();
+        return 'Student Waiting';
     }
 }

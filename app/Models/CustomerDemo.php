@@ -9,7 +9,7 @@ class CustomerDemo extends Model
 {
     use HasFactory;
 
-    protected $table = 'customer_demo';
+    protected $table = 'customer_demo_customer';
     protected $guarded = ['id'];
     
     public function user_manage()

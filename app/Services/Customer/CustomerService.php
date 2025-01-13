@@ -18,6 +18,7 @@ use App\Constants\Customer\Type;
 use App\Constants\Customer\Segment;
 use App\Models\Customer\CustomerSegment;
 use App\Models\Customer\CustomerHistory;
+use App\Models\Customer\CustomerRelated;
 
 class CustomerService
 {
@@ -113,152 +114,47 @@ class CustomerService
 
         foreach ($segments as $segment) {
             $customer->segment()->create($segment);
-        }
+        } 
 
-        // if ($request['source_id'] == Source::PARTNER) {
-        //     $this->businessPartnerService->updateStatus($request['source_detail']);
-        // }
-
-        // $this->updateSingleStatus($user->id);
+        if ($request['source_id'] == Source::STUDENT) {
+            CustomerRelated::create([
+                'related_id' => $customer->id,
+                'customer_id' => $request['source_id']
+            ]);
+        } 
 
         return $customer;
     }
 
-
     public function destroy($request)
     {
         $user = Auth::user();
-        $record = Customer::find($request->id);
+        $customer = Customer::find($request->id);
 
-        $delete = $record->delete();
+        $customer->segment()->delete();
 
-        $this->updateSingleStatus($user->id);
+        if ($customer->students) {
+            foreach ($customer->students as $student) {
+                if ($student->contracts) {
+                    foreach ($student->contracts as $contract) {
+                        $contract->bills()->delete();
+                        $contract->classes()->delete();
+                        $contract->debts()->delete();
+                        $contract->delete();
+                    }
+                }
+                $student->delete();
+            }
+        }
+
+        $customer->histories()->delete();
+
+        $customer->related()->detach();
+        CustomerRelated::where('related_id', $customer->id)->orWhere('customer_id', $customer->id)->delete();
+
+        $delete = $customer->delete();
 
         return $delete;
-    }
-
-    public function updateSingleStatus($userId)
-    {
-        $today = Carbon::today()->format('Y-m-d');
-        $customers = Customer::whereDate('created_at', $today)->where('manage_id', $userId)->get();
-
-        return $this->updateStatus($customers, $userId);
-    }
-
-    public function updateMultipleStatus()
-    {
-        $users = User::where('active', 1)
-            ->with(['customers' => function ($query) {
-                $query->select('id', 'manage_id', 'segment', 'contract', 'active', 'active_date', 'date_registration', 'consulting_date', 'consulting', 'source', 'source_detail');
-            }])
-            ->get();
-
-        foreach ($users as $user) {
-            $status = $this->updateStatus($user->customers, $user->id);
-        }
-
-        return;
-    }
-
-    public function updateStatus($customers, $userId)
-    {
-        $today = Carbon::today()->format('Y-m-d');
-
-        $primary_school = 0;
-        $secondary_school = 0;
-        $high_school = 0;
-        $college = 0;
-        $working = 0;
-
-        $success = 0;
-        $new = 0;
-        $depot = 0;
-        $total = 0;
-
-        $contract_total = 0;
-        $contract_success = 0;
-        $contract_expired = 0;
-        $contract_no_history = 0;
-
-        foreach ($customers as $customer) {
-            $dateRegistration = Carbon::parse($customer->date_registration)->format('Y-m-d');
-
-            if ($customer->consulting_date) {
-                $consultingDate = Carbon::parse($customer->consulting_date);
-
-                $dateDiff = Carbon::today()->diffInDays($consultingDate);
-
-                if ($customer->contract && $customer->consulting != Consulting::CANCEL && $customer->active != Active::CONTRACT && $dateDiff > 3) {
-                    $contract_no_history++;
-                }
-            }
-
-            $total++;
-
-            switch ($customer->segment_id) {
-                case Segment::PRIMARY_SCHOOL:
-                    $primary_school++;
-                    break;
-                case Segment::SECONDARY_SCHOOL:
-                    $secondary_school++;
-                    break;
-                case Segment::HIGH_SCHOOL:
-                    $high_school++;
-                    break;
-                case Segment::COLLEGE:
-                    $college++;
-                    break;
-                case Segment::WORKING:
-                    $working++;
-                    break;
-            }
-
-            if ($customer->contract) {
-                $contract_total++;
-            }
-
-            if ($customer->contract && $customer->active == Active::CONTRACT) {
-                $contract_success++;
-            }
-
-            if ($customer->type == Type::DEPOT) {
-                $depot++;
-            } else if ($customer->type == Type::NEW) {
-                $new++;
-            }
-            
-            if ($customer->active == Active::CONTRACT) {
-                $success++;
-            }
-
-            if ($today > $dateRegistration) {
-                $contract_expired++;
-            }
-        }
-
-        $status = CustomerStatus::updateOrCreate(
-            ['user_id' => $userId, 'date' => $today],
-            [
-                'primary_school' => $primary_school,
-                'secondary_school' => $secondary_school,
-                'high_school' => $high_school,
-                'college' => $college,
-                'working' => $working,
-
-                'customer_success' => $success,
-                'customer_new' => $new,
-                'customer_depot' => $depot,
-                'customer_total' => $total,
-
-                'contract_total' => $contract_total,
-                'contract_success' => $contract_success,
-                // 'contract_percent' => round($contract_total / $total * 100, 2),
-                // 'contract_success_percent' => round($contract_success / $contract_total * 100, 2),
-                'contract_expired' => $contract_expired
-            ]
-        );
-
-        return $status;
     }
 
     public function updateActive()

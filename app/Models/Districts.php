@@ -10,4 +10,8 @@ class Districts extends Model
     use HasFactory;
 
     protected $table = 'districts';
+ 
+    protected $casts = [
+        'code' => 'integer',
+    ];
 }

@@ -34,6 +34,7 @@ class ContractController extends Controller
                 $query->where('manage_id', $user->id);
             })
             ->with([
+                'classes',
                 'product_category',
                 'product',
                 'management' => function ($query) {
@@ -106,7 +107,7 @@ class ContractController extends Controller
                     'student_id' => $request->student_id,
                     'contracts' => $data
                 ],
-                'result' => 'Đã thêm mới hợp đồng!',
+                'message' => 'Đã thêm mới hợp đồng!',
             ));
         }, 'Chưa thêm được hợp đồng!');
     }

@@ -10,4 +10,8 @@ class Cities extends Model
     use HasFactory;
 
     protected $table = 'cities';
+
+    protected $casts = [
+        'code' => 'integer',
+    ];
 }

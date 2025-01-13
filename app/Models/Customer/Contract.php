@@ -32,8 +32,8 @@ class Contract extends Model
         'days_debt',
         'next_day_debt',
         'next_amount_debt'
-    ]; 
-    
+    ];
+
     public function updateDebtsAmountReal()
     {
         $amountBillArr = [];
@@ -48,7 +48,7 @@ class Contract extends Model
                     $amountBillArr[$monthYearBill] = $bill->amount_payment;
                 }
             }
-        } 
+        }
 
         foreach ($this->debts as $debt) {
             $monthYearDebt = Carbon::parse($debt->date)->format('mY');
@@ -56,6 +56,12 @@ class Contract extends Model
             $amount_real = @$amountBillArr[$monthYearDebt] ?? 0;
             $debt->amount_real = $amount_real;
         }
+    }
+
+    public function classes()
+    {
+        return $this->belongsToMany(Classes::class, 'customer_class_contract', 'contract_id', 'class_id')
+            ->withPivot('status_admission', 'status_study');
     }
 
     public function bills()

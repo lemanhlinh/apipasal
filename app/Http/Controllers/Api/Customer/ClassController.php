@@ -19,7 +19,7 @@ class ClassController extends Controller
 
     public function index(Request $request)
     { 
-        $query = Classes::orderBy('id', 'DESC')
+        $query = Classes::orderBy('id', 'DESC') 
             ->with([
                 'class',
                 'course',
@@ -32,9 +32,12 @@ class ClassController extends Controller
                 'opening' => function($queryOpening) {
                     $queryOpening->orderBy('id', 'DESC');
                 }
-            ]);
+            ])
+            ->when($request->has('course') && !empty($request->course), function ($queryCourse) use ($request) {
+                $queryCourse->whereIn('course_id', $request->course);
+            });
 
-        $classes = $query->paginate(20); 
+        $classes = $query->paginate(20);
 
         $totalPages = $classes->lastPage();
         $data = $classes->items();

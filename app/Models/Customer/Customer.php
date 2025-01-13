@@ -40,7 +40,7 @@ class Customer extends Model
             case Source::PARTNER:
                 return $this->belongsTo(BusinessPartner::class, 'source_id', 'id');
             case Source::STUDENT:
-                return $this->belongsTo(Student::class, 'source_id', 'id');
+                return $this->belongsTo(Customer::class, 'source_id', 'id');
             default:
                 return null;
         }
@@ -79,5 +79,15 @@ class Customer extends Model
     public function product_category()
     {
         return $this->belongsTo(ProductCategories::class, 'product_category_id');
+    }
+
+    public function related()
+    {
+       return $this->belongsToMany(Customer::class, 'customer_related', 'customer_id', 'related_id');
+    }
+
+    public function histories()
+    {
+        return $this->hasMany(CustomerHistory::class, 'customer_id', 'id');
     }
 }

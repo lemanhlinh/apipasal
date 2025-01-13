@@ -65,7 +65,7 @@ class ChangeManagerController extends Controller
         $newUserId = $request->new_user_id ? $request->new_user_id : $user->id;
         $oldUserId = $request->new_user_id ? $user->id : $customer->manage_id;
 
-        if (!$customer || $newUserId == $oldUserId || (!$request->new_user_id && $customer->type != Type::DEPOT)) {
+        if (!$customer || $newUserId == $oldUserId || (!$newUserId && $customer->type != Type::DEPOT)) {
             return response()->json(array(
                 'error' => true,
                 'message' => 'Không tìm thấy khách hàng hoặc bạn không có quyền thay đổi quản lý khách hàng này!',

@@ -11,6 +11,9 @@ class Student extends Model
     use HasFactory;
     protected $table = 'customer_students';
     protected $guarded = ['id'];
+    protected $appends = [
+        'classes',
+    ];
 
     public function customer()
     {
@@ -25,5 +28,19 @@ class Student extends Model
     public function contracts()
     {
         return $this->hasMany(Contract::class, 'student_id', 'id');
+    }
+
+    public function getClassesAttribute()
+    {
+        $classes = [];
+        foreach ($this->contracts as $contract) {
+            if ($contract->classes){
+                foreach ($contract->classes as $class) {
+                    $classes[] = $class;
+                }
+            }
+        }
+
+        return $classes;
     }
 }

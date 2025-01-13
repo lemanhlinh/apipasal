@@ -33,6 +33,13 @@ class CreateCustomerContractsTable extends Migration
             $table->unsignedBigInteger('amount_special');
             $table->unsignedBigInteger('amount_promotion');
 
+            $table->unsignedBigInteger('campuse_id')->default(0);
+            $table->unsignedBigInteger('type_study')->default(1)->comment('Hình thức học - 1: Online; 2: Offline');
+            $table->tinyInteger('month_id')->default(0)->comment('Tháng muốn học');
+            $table->unsignedBigInteger('time_study_id')->default(0)->comment('Ca muốn học');
+            $table->unsignedBigInteger('day_shift_learn_id')->default(0)->comment('Thời gian muốn học');
+            $table->unsignedBigInteger('calendar_learn_id')->default(0)->comment('Lịch muốn học');
+
             $table->tinyInteger('active')->default(1)->comment('1: Active; 0: Hủy');
 
             // $table->string('bill_number')->nullable()->comment('Mã số phiếu thu');

@@ -5,13 +5,10 @@ namespace App\Models\Customer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-use App\Models\User;
-
-class DemoCustomer extends Model
+class CustomerRelated extends Model
 {
     use HasFactory;
-
-    protected $table = 'customer_demo_customer';
+    protected $table = 'customer_related';
     protected $guarded = ['id'];
 
     public function customer()
@@ -19,8 +16,8 @@ class DemoCustomer extends Model
         return $this->belongsTo(Customer::class, 'customer_id');
     }
 
-    public function demo()
+    public function related()
     {
-        return $this->belongsTo(Demo::class, 'demo_id');
+        return $this->belongsTo(Customer::class, 'related_id');
     }
 }

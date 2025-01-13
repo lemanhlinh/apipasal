@@ -17,8 +17,8 @@ class CreateCustomerClasses extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->unsignedBigInteger('campuse_id')->default(0);
-            $table->unsignedBigInteger('class_id')->default(0);
-            $table->string('class_url')->nullable();
+            $table->unsignedBigInteger('classroom_id')->default(0);
+            $table->string('classroom_url')->nullable();
             $table->unsignedBigInteger('course_category_id');
             $table->unsignedBigInteger('course_id');
             $table->unsignedBigInteger('day_shift_learn_id')->comment('Thời gian học');

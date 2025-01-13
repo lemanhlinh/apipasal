@@ -9,6 +9,8 @@ use App\Models\Customer\Classes;
 use App\Models\Courses;
 use App\Models\CalendarLearn;
 use App\Models\Customer\ClassOpening;
+use App\Models\Customer\ClassContract;
+use App\Models\Customer\Contract;
 
 class ClassService
 {
@@ -19,8 +21,8 @@ class ClassService
         $create = [
             'name'               => $request['name'],
             'campuse_id'         => $request['campuse_type'] == 2 ? $request['campuse_id'] : 0,
-            'class_id'           => $request['class_id'] ?? 0,
-            'class_url'          => $request['class_url'],
+            'classroom_id'       => $request['classroom_id'] ?? 0,
+            'classroom_url'      => $request['classroom_url'],
             'course_category_id' => $request['course_category_id'],
             'course_id'          => $request['course_id'],
             'day_shift_learn_id' => $request['day_shift_learn_id'],
@@ -93,5 +95,31 @@ class ClassService
         $ClassOpening->date_end = $dateEnd;
 
         return $ClassOpening;
+    }
+
+    public function addClassContract($request)
+    {
+        // $contract = Contract::find($request['contract_id'])
+        //     ->with([
+        //         'product' => function($query) {
+        //             $query->with(['courses']);
+        //         }
+        //     ]);
+        
+        // $class = Classes::find($request['class_id']);
+
+        // $course = $contract->product->courses->pluck('id')->toArray();
+
+        // if (!in_array($class->course_id, $course)) {
+        //     throw new \Exception('Khóa học không hợp lệ!');
+        //     return;
+        // }
+
+        return ClassContract::create([
+            'class_id' => $request['class_id'],
+            'contract_id' => $request['contract_id'],
+            'status_study' => 1,
+            'status_admission' => 3
+        ]);
     }
 }
