@@ -30,21 +30,33 @@ class CampusesController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        if ($user->department_id && $all == 0) {
+        $campuses_id = request()->input('campuses_id');
 
+        if ($user->department_id && $all == 0) {
             $departmentDetail = Department::find($user->department_id);
             $department_id = $departmentDetail->id;
-
-            $campuses = Campuses::whereHas('campusDepartment', function ($query) use ($department_id) {
+        
+            $query = Campuses::whereHas('campusDepartment', function ($query) use ($department_id) {
                 $query->where('department_id', $department_id);
-            })->with('campusDepartment')->with('classrooms')->orderBy('id', 'DESC')->get();
+            })->with('campusDepartment')->with('classrooms')->orderBy('id', 'DESC');
+        
+            if ($campuses_id) {
+                $query = $query->where('id', $campuses_id);
+            }
+        
         } else {
-            $campuses = Campuses::with(['classrooms' => function ($q) {
+            $query = Campuses::with(['classrooms' => function ($q) {
                 $q->select('id', 'title', 'campuses_id');
             }])->with(['departments' => function ($q) {
                 $q->withCount('users');
-            }])->orderBy('id', 'DESC')->get();
+            }])->orderBy('id', 'DESC');
+        
+            if ($campuses_id) {
+                $query = $query->where('id', $campuses_id);
+            }
         }
+        
+        $campuses = $query->get();
 
         foreach ($campuses as $campus) {
             $totalUsersCount = 0;
